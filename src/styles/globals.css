@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #fafafa;
+  --color-surface-dark: #121212;
+  --color-card: #f4f4f5;
+  --color-card-dark: #181818;
+  --color-divider: #e4e4e7;
+  --color-divider-dark: #282828;
+  --color-muted: #71717a;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+}
+
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not(.light, .light *)) {
+      @slot;
+    }
+  }
+}

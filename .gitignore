@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+
+# build output
+/dist
+
+# marko run generated types
+/.marko-run
+
+# misc
+.DS_Store
+*.log
+
+# local env files
+.env*
+
+# typescript
+*.tsbuildinfo
+
+# linked / packed Marko builds (see scripts/link-marko.mjs and README)
+.marko-src/

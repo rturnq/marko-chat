@@ -1,0 +1,4 @@
+dist
+node_modules
+.marko-run
+pnpm-lock.yaml
