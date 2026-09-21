@@ -1,29 +1,18 @@
 <const/{ messages, error }=$global.data>
 
-<ol class='flex flex-col gap-2'>
+<ol class='messages'>
   <for|message| of=messages by='id'>
-    <li class='bg-card dark:bg-card-dark rounded-md px-3 py-2'>
-      <span class='text-muted mr-2 text-xs'>${message.author}</span><span>${message.text}</span>
+    <li class='message'>
+      <span class='message-author'>${message.author}</span><span>${message.text}</span>
     </li>
   </for>
 </ol>
 
-<form class='flex flex-col gap-2' method='post'>
+<form class='composer' method='post'>
   <if=error>
-    <p class='text-sm text-red-600' role='alert'>${error}</p>
+    <p class='error' role='alert'>${error}</p>
   </if>
-  <input
-    autocomplete='nickname'
-    class='border-divider dark:border-divider-dark rounded-md border bg-transparent px-3 py-2'
-    name='author'
-    placeholder='Name (optional)'
-  >
-  <textarea
-    class='border-divider dark:border-divider-dark rounded-md border bg-transparent px-3 py-2'
-    name='text'
-    placeholder='Type a message'
-    required
-    rows='3'
-  />
-  <button class='bg-accent hover:bg-accent-hover self-end rounded-md px-4 py-2 text-white' type='submit'>Send</button>
+  <input autocomplete='nickname' name='author' placeholder='Name (optional)'>
+  <textarea name='text' placeholder='Type a message' required rows='3'/>
+  <button type='submit'>Send</button>
 </form>

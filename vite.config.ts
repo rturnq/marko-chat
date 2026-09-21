@@ -1,7 +1,6 @@
-import tailwindcss from '@tailwindcss/vite';
 import marko from '@marko/run/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [marko({ patches: true }), tailwindcss()],
+  plugins: [marko({ patches: true })],
 });

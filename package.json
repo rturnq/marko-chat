@@ -9,8 +9,9 @@
     "build": "marko-run build",
     "preview": "marko-run preview",
     "start": "node --enable-source-maps ./dist/index.mjs",
-    "format": "prettier --write .",
-    "typecheck": "tsc --noEmit && mtc"
+    "typecheck": "tsc --noEmit && mtc",
+    "format": "oxfmt",
+    "lint": "oxlint"
   },
   "dependencies": {
     "marko": "link:.marko-src/link/node_modules/marko"
@@ -20,27 +21,24 @@
     "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
     "@marko/type-check": "^3.2.0",
     "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
-    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.3.0",
-    "prettier": "^3.9.6",
-    "prettier-plugin-marko": "^4.1.0",
-    "prettier-plugin-tailwindcss": "^0.8.1",
-    "tailwindcss": "^4.3.3",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
     "typescript": "^7.0.2",
     "valibot": "^1.2.0",
     "vite": "^8.3.0"
   },
-  "packageManager": "pnpm@11.24.0",
-  "overrides": {
-    "marko": "link:.marko-src/link/node_modules/marko",
-    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
-    "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
-    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler"
-  },
   "resolutions": {
-    "marko": "link:.marko-src/link/node_modules/marko",
-    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler",
     "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
-    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler"
-  }
+    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "marko": "link:.marko-src/link/node_modules/marko"
+  },
+  "overrides": {
+    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler",
+    "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
+    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "marko": "link:.marko-src/link/node_modules/marko"
+  },
+  "packageManager": "pnpm@11.24.0"
 }
