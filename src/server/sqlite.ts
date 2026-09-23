@@ -56,7 +56,7 @@ function createDriver(path: string): Driver {
     async run(sql, ...params) {
       return run(sql, params);
     },
-    async batch(statements) {
+    async batch(...statements) {
       return transaction(db, () =>
         statements.map(([sql, ...params]) => run(sql, params)),
       );

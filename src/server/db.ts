@@ -65,7 +65,7 @@ export interface Driver {
   first<Row>(sql: string, ...params: SqlValue[]): Promise<Row | undefined>;
   all<Row>(sql: string, ...params: SqlValue[]): Promise<Row[]>;
   run(sql: string, ...params: SqlValue[]): Promise<{ changes: number }>;
-  batch(statements: SqlStatement[]): Promise<{ changes: number }[]>;
+  batch(...statements: SqlStatement[]): Promise<{ changes: number }[]>;
 }
 
 const USER_COLUMNS = "id, name, display_name AS displayName, status";
@@ -121,23 +121,20 @@ export class Db {
     `);
   }
 
+  // A duplicate name fails the UNIQUE constraint, so RETURNING always yields the row.
   async createUser(name: string): Promise<User> {
     const db = await this.#connection();
     const user = await db.first<User>(
       `
       INSERT INTO users (id, name, display_name, status, created_at)
       VALUES (?1, ?2, ?2, ${UserStatus.Active}, ?3)
-      ON CONFLICT (name) DO NOTHING
       RETURNING ${USER_COLUMNS}
       `,
       shortId(),
       name,
       Date.now(),
     );
-    if (!user) {
-      throw new Error(`User with name ${name} already exists`);
-    }
-    return user;
+    return user!;
   }
 
   async updateUserDisplayName(
@@ -209,11 +206,12 @@ export class Db {
       .replace(/[^a-z0-9-]+/, "-")
       .replace(/^-+|-+$/, "");
     const db = await this.#connection();
+    // A duplicate slug or missing owner fails a constraint, so RETURNING always
+    // yields the row.
     const channel = await db.first<Channel>(
       `
       INSERT INTO channels (id, owner_id, slug, name, created_at)
       VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT (slug) DO NOTHING
       RETURNING ${CHANNEL_COLUMNS}
       `,
       shortId(),
@@ -222,10 +220,7 @@ export class Db {
       name,
       Date.now(),
     );
-    if (!channel) {
-      throw new Error(`Channel with name ${name} already exists`);
-    }
-    return channel;
+    return channel!;
   }
 
   /**
@@ -310,23 +305,21 @@ export class Db {
     text: string,
   ): Promise<Message> {
     const db = await this.#connection();
-    // Selecting from `channels` inserts nothing when the channel does not exist.
+    // A missing channel or author fails a FOREIGN KEY constraint, so RETURNING
+    // always yields the row.
     const message = await db.first<Message>(
       `
       INSERT INTO messages (id, channel_id, author_id, text, created_at)
-      SELECT ?, id, ?, ?, ? FROM channels WHERE id = ?
+      VALUES (?, ?, ?, ?, ?)
       RETURNING ${MESSAGE_COLUMNS}
       `,
       shortId(),
+      channelId,
       authorId,
       text,
       Date.now(),
-      channelId,
     );
-    if (!message) {
-      throw new Error(`No channel with id ${channelId}`);
-    }
-    return message;
+    return message!;
   }
 
   async updateMessage(
@@ -367,44 +360,30 @@ export class Db {
   ): Promise<void> {
     const db = await this.#connection();
     const createdAt = Date.now();
-    try {
-      await db.batch([
-        [
-          `
-          INSERT INTO reactions (id, message_id, symbol, created_at)
-          VALUES (?, ?, ?, ?)
-          ON CONFLICT (message_id, symbol) DO NOTHING
-          `,
-          shortId(),
-          messageId,
-          symbol,
-          createdAt,
-        ],
-        [
-          `
-          INSERT INTO reaction_users (reaction_id, user_id, created_at)
-          SELECT id, ?3, ?4 FROM reactions WHERE message_id = ?1 AND symbol = ?2
-          ON CONFLICT DO NOTHING
-          `,
-          messageId,
-          symbol,
-          userId,
-          createdAt,
-        ],
-      ]);
-    } catch (err) {
-      // `ON CONFLICT` does not cover foreign keys, so a missing message or user
-      // fails the batch; node:sqlite and D1 both report SQLite's message.
-      if (
-        err instanceof Error &&
-        err.message.includes("FOREIGN KEY constraint failed")
-      ) {
-        throw new Error("Cannot add reaction: message or user not found", {
-          cause: err,
-        });
-      }
-      throw err;
-    }
+    await db.batch(
+      [
+        `
+        INSERT INTO reactions (id, message_id, symbol, created_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (message_id, symbol) DO NOTHING
+        `,
+        shortId(),
+        messageId,
+        symbol,
+        createdAt,
+      ],
+      [
+        `
+        INSERT INTO reaction_users (reaction_id, user_id, created_at)
+        SELECT id, ?3, ?4 FROM reactions WHERE message_id = ?1 AND symbol = ?2
+        ON CONFLICT DO NOTHING
+        `,
+        messageId,
+        symbol,
+        userId,
+        createdAt,
+      ],
+    );
   }
 
   /**
@@ -417,7 +396,7 @@ export class Db {
     symbol: string,
   ): Promise<void> {
     const db = await this.#connection();
-    await db.batch([
+    await db.batch(
       [
         `
         DELETE FROM reaction_users
@@ -439,6 +418,6 @@ export class Db {
         messageId,
         symbol,
       ],
-    ]);
+    );
   }
 }
