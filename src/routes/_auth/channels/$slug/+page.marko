@@ -1,9 +1,4 @@
-import type { message } from "valibot";
-import type { UserStatus } from "../../../../server/db";
-import type { UserStatus } from "../../../../server/db";
-import type { placeholder } from "@marko/compiler/babel-types";
 import { UserStatus } from "../../../../server/db";
-import type { placeholder } from "@marko/compiler/babel-types";
 
 static const UserStatuses = {
   Active: UserStatus.Active,
@@ -44,7 +39,7 @@ static const UserStatusIcons = {
             <button
               type="submit"
               name="status"
-              value=status
+              value="" + status
               disabled=user.status === status
               title=label
             >
