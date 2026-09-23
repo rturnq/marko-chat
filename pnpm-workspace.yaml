@@ -1,7 +1,5 @@
 allowBuilds:
   esbuild: true
-overrides:
-  'marko': link:.marko-src/link/node_modules/marko
-  '@marko/vite': file:.marko-src/tarballs/marko-vite.tgz
-  '@marko/run': file:.marko-src/tarballs/marko-run.tgz
-  '@marko/compiler': link:.marko-src/link/node_modules/@marko/compiler
+minimumReleaseAgeExclude:
+  - '@marko/compiler@5.42.6'
+  - marko@6.3.53
