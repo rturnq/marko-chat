@@ -16,6 +16,3 @@
 
 # typescript
 *.tsbuildinfo
-
-# linked / packed Marko builds (see scripts/link-marko.mjs and README)
-.marko-src/
