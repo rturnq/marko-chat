@@ -12,7 +12,7 @@ export const GET = Run.GET(
     return next({
       channelList: ctx.db.getChannels(),
       activeChannel: ctx.db.getChannelBySlug(slug),
-      messages: ctx.db.getMessages(slug),
+      messages: ctx.db.getMessages(slug).then((page) => page.messages),
       onlineMembers: ctx.db.getOnlineMembers(),
       offlineMembers: ctx.db.getOfflineMembers(),
       editId: ctx.search[0].edit,
