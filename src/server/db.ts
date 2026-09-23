@@ -42,6 +42,15 @@ export interface JoinedMessage extends Message {
   reactions: MessageReaction[];
 }
 
+export const MESSAGE_PAGE_SIZE = 25;
+
+export interface MessagePage {
+  /** Oldest first. */
+  messages: JoinedMessage[];
+  /** The `before` cursor for the next older page; undefined on the oldest page. */
+  older: string | undefined;
+}
+
 export type SqlValue = null | number | string;
 export type SqlStatement = [sql: string, ...params: SqlValue[]];
 
@@ -222,70 +231,81 @@ export class Db {
     return channel;
   }
 
-  async getMessages(channelSlug: string): Promise<JoinedMessage[]> {
+  /**
+   * A page of the channel's messages: the latest, or with `before` (a message
+   * id, see `MessagePage.older`) the ones just older than that message.
+   */
+  async getMessages(
+    channelSlug: string,
+    {
+      before,
+      limit = MESSAGE_PAGE_SIZE,
+    }: { before?: string; limit?: number } = {},
+  ): Promise<MessagePage> {
     const db = await this.#connection();
-    const [messageRows, reactionRows] = await Promise.all([
-      db.all<MessageRow & { authorName: string }>(
-        `
-        SELECT
-          m.id,
-          m.channel_id AS channelId,
-          m.author_id AS authorId,
-          m.text,
-          m.created_at AS createdAt,
-          m.edited_at AS editedAt,
-          u.display_name AS authorName
+    // Selects one message more than the page to learn whether an older page
+    // exists. Each message's reactions are built as JSON by correlated
+    // subqueries, so they are index lookups driven by the page's messages
+    // (reactions in the order first added, authors in the order they reacted);
+    // `json()` keeps the inner arrays from being encoded as strings.
+    const rows = await db.all<
+      MessageRow & { authorName: string; reactions: string }
+    >(
+      `
+      WITH page AS (
+        SELECT m.id, m.channel_id, m.author_id, m.text, m.created_at, m.edited_at
         FROM channels c
         JOIN messages m ON m.channel_id = c.id
-        JOIN users u ON u.id = m.author_id
-        WHERE c.slug = ?
-        ORDER BY m.created_at
-        `,
-        channelSlug,
-      ),
-      // Ordered so each reaction's rows are contiguous, reactions in the order
-      // they were first added, and authors in the order they reacted.
-      db.all<{
-        messageId: string;
-        symbol: string;
-        authorId: string;
-        authorName: string;
-      }>(
-        `
-        SELECT
-          r.message_id AS messageId,
-          r.symbol,
-          ru.user_id AS authorId,
-          u.display_name AS authorName
-        FROM channels c
-        JOIN messages m ON m.channel_id = c.id
-        JOIN reactions r ON r.message_id = m.id
-        JOIN reaction_users ru ON ru.reaction_id = r.id
-        JOIN users u ON u.id = ru.user_id
-        WHERE c.slug = ?
-        ORDER BY r.created_at, r.id, ru.created_at
-        `,
-        channelSlug,
-      ),
-    ]);
+        WHERE c.slug = ?1${
+          before === undefined
+            ? ""
+            : `
+          AND (m.created_at, m.id) < (SELECT created_at, id FROM messages WHERE id = ?3)`
+        }
+        ORDER BY m.created_at DESC, m.id DESC
+        LIMIT ?2
+      )
+      SELECT
+        p.id,
+        p.channel_id AS channelId,
+        p.author_id AS authorId,
+        p.text,
+        p.created_at AS createdAt,
+        p.edited_at AS editedAt,
+        u.display_name AS authorName,
+        (
+          SELECT json_group_array(
+            json_object('symbol', r.symbol, 'authors', json((
+              SELECT json_group_array(
+                json_object('authorId', ru.user_id, 'authorName', ru_user.display_name)
+                ORDER BY ru.created_at
+              )
+              FROM reaction_users ru
+              JOIN users ru_user ON ru_user.id = ru.user_id
+              WHERE ru.reaction_id = r.id
+            )))
+            ORDER BY r.created_at, r.id
+          )
+          FROM reactions r
+          WHERE r.message_id = p.id
+        ) AS reactions
+      FROM page p
+      JOIN users u ON u.id = p.author_id
+      ORDER BY p.created_at, p.id
+      `,
+      ...(before === undefined
+        ? [channelSlug, limit + 1]
+        : [channelSlug, limit + 1, before]),
+    );
 
-    const reactionsByMessage = new Map<string, MessageReaction[]>();
-    for (const { messageId, symbol, authorId, authorName } of reactionRows) {
-      let reactions = reactionsByMessage.get(messageId);
-      if (!reactions) {
-        reactionsByMessage.set(messageId, (reactions = []));
-      }
-      let reaction = reactions.at(-1);
-      if (reaction?.symbol !== symbol) {
-        reactions.push((reaction = { symbol, authors: [] }));
-      }
-      reaction.authors.push({ authorId, authorName });
-    }
-
-    return messageRows.map((row) => ({
-      ...toMessage(row),
-      reactions: reactionsByMessage.get(row.id) ?? [],
-    }));
+    const hasOlder = rows.length > limit;
+    const messages = (hasOlder ? rows.slice(1) : rows).map(
+      ({ reactions, ...row }) => ({
+        ...toMessage(row),
+        reactions: JSON.parse(reactions) as MessageReaction[],
+      }),
+    );
+    return { messages, older: hasOlder ? messages[0].id : undefined };
   }
 
   async createMessage(
