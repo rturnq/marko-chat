@@ -1,0 +1,49 @@
+{
+  "name": "marko-chat",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "marko-run",
+    "build": "marko-run build",
+    "preview": "marko-run preview",
+    "start": "node --enable-source-maps ./dist/index.mjs",
+    "typecheck": "tsc --noEmit && mtc",
+    "format": "oxfmt",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@remix-run/cookie": "^0.7.0",
+    "@remix-run/fetch-router": "^0.22.1",
+    "@remix-run/session": "^0.4.2",
+    "@remix-run/session-middleware": "^0.5.0",
+    "marko": "link:.marko-src/link/node_modules/marko"
+  },
+  "devDependencies": {
+    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler",
+    "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
+    "@marko/type-check": "^3.2.0",
+    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "@standard-schema/spec": "^1.1.0",
+    "@types/node": "^26.3.0",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "typescript": "^7.0.2",
+    "valibot": "^1.2.0",
+    "vite": "^8.3.0"
+  },
+  "resolutions": {
+    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler",
+    "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
+    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "marko": "link:.marko-src/link/node_modules/marko"
+  },
+  "overrides": {
+    "@marko/compiler": "link:.marko-src/link/node_modules/@marko/compiler",
+    "@marko/run": "file:.marko-src/tarballs/marko-run.tgz",
+    "@marko/vite": "file:.marko-src/tarballs/marko-vite.tgz",
+    "marko": "link:.marko-src/link/node_modules/marko"
+  },
+  "packageManager": "pnpm@11.24.0"
+}
