@@ -172,7 +172,13 @@ static const UserStatusIcons = {
                         >
                           <button
                             type="submit"
-                            name="symbol"
+                            name=(
+                              reaction.authors.some(
+                                (user) => user.authorId === userId,
+                              )
+                                ? "remove"
+                                : "add"
+                            )
                             value=reaction.symbol
                             title=`${reaction.authors.map((user) => (user.authorId === userId ? "you" : user.authorName)).join(", ")} reacted`
                           >
@@ -190,7 +196,7 @@ static const UserStatusIcons = {
                           })
                         >
                           <for|symbol| of=["🙂", "🙁", "❤️", "👍", "👎"]>
-                            <button type="submit" name="symbol" value=symbol>
+                            <button type="submit" name="add" value=symbol>
                               ${symbol}
                             </button>
                           </for>
