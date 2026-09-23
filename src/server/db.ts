@@ -25,8 +25,10 @@ export interface Message {
   channelId: string;
   authorId: string;
   text: string;
-  createdAt: Date;
-  editedAt: Date | null;
+  /** Milliseconds since the Unix epoch. */
+  createdAt: number;
+  /** Milliseconds since the Unix epoch; null until the text is changed. */
+  editedAt: number | null;
 }
 
 export interface MessageReaction {
@@ -65,11 +67,6 @@ export interface Driver {
   run(sql: string, ...params: SqlValue[]): Promise<{ changes: number }>;
   batch(statements: SqlStatement[]): Promise<{ changes: number }[]>;
 }
-
-type MessageRow = Omit<Message, "createdAt" | "editedAt"> & {
-  createdAt: number;
-  editedAt: number | null;
-};
 
 const USER_COLUMNS = "id, name, display_name AS displayName, status";
 const CHANNEL_COLUMNS = "id, owner_id AS ownerId, slug, name";
@@ -248,9 +245,7 @@ export class Db {
     // subqueries, so they are index lookups driven by the page's messages
     // (reactions in the order first added, authors in the order they reacted);
     // `json()` keeps the inner arrays from being encoded as strings.
-    const rows = await db.all<
-      MessageRow & { authorName: string; reactions: string }
-    >(
+    const messages = await db.all<JoinedMessage>(
       `
       WITH page AS (
         SELECT m.id, m.channel_id, m.author_id, m.text, m.created_at, m.edited_at
@@ -298,13 +293,14 @@ export class Db {
         : [channelSlug, limit + 1, before]),
     );
 
-    const hasOlder = rows.length > limit;
-    const messages = (hasOlder ? rows.slice(1) : rows).map(
-      ({ reactions, ...row }) => ({
-        ...toMessage(row),
-        reactions: JSON.parse(reactions) as MessageReaction[],
-      }),
-    );
+    const hasOlder = messages.length > limit;
+    if (hasOlder) {
+      messages.shift();
+    }
+    for (const message of messages) {
+      // Arrives as the JSON text built above.
+      message.reactions = JSON.parse(message.reactions as unknown as string);
+    }
     return { messages, older: hasOlder ? messages[0].id : undefined };
   }
 
@@ -315,7 +311,7 @@ export class Db {
   ): Promise<Message> {
     const db = await this.#connection();
     // Selecting from `channels` inserts nothing when the channel does not exist.
-    const message = await db.first<MessageRow>(
+    const message = await db.first<Message>(
       `
       INSERT INTO messages (id, channel_id, author_id, text, created_at)
       SELECT ?, id, ?, ?, ? FROM channels WHERE id = ?
@@ -330,7 +326,7 @@ export class Db {
     if (!message) {
       throw new Error(`No channel with id ${channelId}`);
     }
-    return toMessage(message);
+    return message;
   }
 
   async updateMessage(
@@ -339,7 +335,7 @@ export class Db {
     text: string,
   ): Promise<Message> {
     const db = await this.#connection();
-    const message = await db.first<MessageRow>(
+    const message = await db.first<Message>(
       `
       UPDATE messages
       SET
@@ -354,7 +350,7 @@ export class Db {
       authorId,
     );
     if (message) {
-      return toMessage(message);
+      return message;
     } else if (
       !(await db.first(`SELECT 1 FROM messages WHERE id = ?`, messageId))
     ) {
@@ -443,12 +439,4 @@ export class Db {
     ]);
     return true;
   }
-}
-
-function toMessage<T extends MessageRow>(row: T) {
-  return {
-    ...row,
-    createdAt: new Date(row.createdAt),
-    editedAt: row.editedAt === null ? null : new Date(row.editedAt),
-  };
 }
