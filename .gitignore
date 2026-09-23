@@ -16,3 +16,6 @@
 
 # typescript
 *.tsbuildinfo
+
+# sqlite database (see DATABASE_PATH in src/server/db.ts)
+/data

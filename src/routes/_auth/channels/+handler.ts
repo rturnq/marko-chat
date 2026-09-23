@@ -1,5 +1,4 @@
 import * as v from "valibot";
-import { createChannel } from "../../../server/db";
 import { formError } from "../../../server/utils/validation";
 
 export const POST = Run.POST(
@@ -15,7 +14,7 @@ export const POST = Run.POST(
       return ctx.back();
     }
     try {
-      const { slug } = await createChannel(body.name, ctx.data.userId);
+      const { slug } = await ctx.db.createChannel(body.name, ctx.data.userId);
       return ctx.redirect(
         Run.href("/channels/$slug", { params: { slug } }),
         303,

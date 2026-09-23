@@ -29,14 +29,6 @@ export interface Message {
   editedAt: Date | null;
 }
 
-export interface Reaction {
-  id: string;
-  messageId: string;
-  symbol: string;
-  createdAt: Date;
-  authorIds: Set<string>;
-}
-
 export interface MessageReaction {
   symbol: string;
   authors: {
@@ -50,275 +42,393 @@ export interface JoinedMessage extends Message {
   reactions: MessageReaction[];
 }
 
-const users = new Map<string, User>();
-const channels = new Map<string, Channel>();
-const messages = new Map<string, Message>();
-const channelMessages = new Map<string, Message[]>();
-const reactions = new Map<string, Reaction>();
-seed();
+export type SqlValue = null | number | string;
+export type SqlStatement = [sql: string, ...params: SqlValue[]];
 
-export function getUser(id: string): Promise<User | undefined> {
-  return withDelay(users.get(id));
+/**
+ * What `Db` needs from a SQLite connection, shaped like D1: every call is
+ * async, parameters are positional (`?` or `?NNN`), and `batch` runs its
+ * statements in order in one transaction.
+ */
+export interface Driver {
+  first<Row>(sql: string, ...params: SqlValue[]): Promise<Row | undefined>;
+  all<Row>(sql: string, ...params: SqlValue[]): Promise<Row[]>;
+  run(sql: string, ...params: SqlValue[]): Promise<{ changes: number }>;
+  batch(statements: SqlStatement[]): Promise<{ changes: number }[]>;
 }
 
-export function getUserByName(name: string): Promise<User | undefined> {
-  for (const user of users.values()) {
-    if (user.name === name) {
-      return withDelay(user);
-    }
+type MessageRow = Omit<Message, "createdAt" | "editedAt"> & {
+  createdAt: number;
+  editedAt: number | null;
+};
+
+const USER_COLUMNS = "id, name, display_name AS displayName, status";
+const CHANNEL_COLUMNS = "id, owner_id AS ownerId, slug, name";
+const MESSAGE_COLUMNS =
+  "id, channel_id AS channelId, author_id AS authorId, text, created_at AS createdAt, edited_at AS editedAt";
+
+/**
+ * The app's queries. Constructing one does no I/O: `connect` runs on the first
+ * query, and every query awaits the driver it returns, sync or async.
+ */
+export class Db {
+  #connect: () => Driver | Promise<Driver>;
+  #driver: Driver | Promise<Driver> | undefined;
+
+  constructor(connect: () => Driver | Promise<Driver>) {
+    this.#connect = connect;
   }
-  return withDelay(undefined);
-}
 
-export function getOnlineMembers(): Promise<User[]> {
-  const result: User[] = [];
-  for (const user of users.values()) {
-    if (user.status !== UserStatus.Offline) {
-      result.push(user);
-    }
+  #connection() {
+    return (this.#driver ??= this.#connect());
   }
-  return withDelay(result.sort(compareUserByDisplayNameAsc));
-}
 
-export function getOfflineMembers(): Promise<User[]> {
-  const result: User[] = [];
-  for (const user of users.values()) {
-    if (user.status === UserStatus.Offline) {
-      result.push(user);
-    }
+  async getUser(id: string): Promise<User | undefined> {
+    const db = await this.#connection();
+    return db.first<User>(`SELECT ${USER_COLUMNS} FROM users WHERE id = ?`, id);
   }
-  return withDelay(result.sort(compareUserByDisplayNameAsc));
-}
 
-export function createUser(name: string): Promise<User> {
-  for (const user of users.values()) {
-    if (user.name === name) {
+  async getUserByName(name: string): Promise<User | undefined> {
+    const db = await this.#connection();
+    return db.first<User>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE name = ?`,
+      name,
+    );
+  }
+
+  // Offline is the lowest status, so "online" stays a range on the status index.
+  async getOnlineMembers(): Promise<User[]> {
+    const db = await this.#connection();
+    return db.all<User>(`
+      SELECT ${USER_COLUMNS} FROM users
+      WHERE status > ${UserStatus.Offline}
+      ORDER BY display_name COLLATE NOCASE
+    `);
+  }
+
+  async getOfflineMembers(): Promise<User[]> {
+    const db = await this.#connection();
+    return db.all<User>(`
+      SELECT ${USER_COLUMNS} FROM users
+      WHERE status = ${UserStatus.Offline}
+      ORDER BY display_name COLLATE NOCASE
+    `);
+  }
+
+  async createUser(name: string): Promise<User> {
+    const db = await this.#connection();
+    const user = await db.first<User>(
+      `
+      INSERT INTO users (id, name, display_name, status, created_at)
+      VALUES (?1, ?2, ?2, ${UserStatus.Active}, ?3)
+      ON CONFLICT (name) DO NOTHING
+      RETURNING ${USER_COLUMNS}
+      `,
+      shortId(),
+      name,
+      Date.now(),
+    );
+    if (!user) {
       throw new Error(`User with name ${name} already exists`);
     }
+    return user;
   }
-  const user: User = {
-    id: shortId(),
-    name: name,
-    displayName: name,
-    status: UserStatus.Active,
-  };
-  users.set(user.id, user);
-  return withDelay(user);
-}
 
-export function updateUserDisplayName(
-  id: string,
-  displayName: string,
-): Promise<User | undefined> {
-  const user = users.get(id);
-  if (user) {
-    user.displayName = displayName;
+  async updateUserDisplayName(
+    id: string,
+    displayName: string,
+  ): Promise<User | undefined> {
+    const db = await this.#connection();
+    return db.first<User>(
+      `UPDATE users SET display_name = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
+      displayName,
+      id,
+    );
   }
-  return withDelay(user);
-}
 
-export function updateUserStatus(
-  id: string,
-  status: UserStatus,
-): Promise<User | undefined> {
-  const user = users.get(id);
-  if (user) {
-    user.status = status;
+  async updateUserStatus(
+    id: string,
+    status: UserStatus,
+  ): Promise<User | undefined> {
+    const db = await this.#connection();
+    return db.first<User>(
+      `UPDATE users SET status = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
+      status,
+      id,
+    );
   }
-  return withDelay(user);
-}
 
-export function getChannels(): Promise<Channel[]> {
-  return withDelay([...channels.values()]);
-}
-
-export function getDefaultChannel(): Promise<Channel> {
-  for (const channel of channels.values()) {
-    return withDelay(channel);
+  async getChannels(): Promise<Channel[]> {
+    const db = await this.#connection();
+    return db.all<Channel>(
+      `SELECT ${CHANNEL_COLUMNS} FROM channels ORDER BY created_at`,
+    );
   }
-  throw new Error("No channels have been created");
-}
 
-export function getChannelBySlug(slug: string): Promise<Channel | undefined> {
-  for (const channel of channels.values()) {
-    if (channel.slug === slug) {
-      return withDelay(channel);
+  async getDefaultChannel(): Promise<Channel> {
+    const db = await this.#connection();
+    const channel = await db.first<Channel>(
+      `SELECT ${CHANNEL_COLUMNS} FROM channels ORDER BY created_at LIMIT 1`,
+    );
+    if (!channel) {
+      throw new Error("No channels have been created");
     }
+    return channel;
   }
-  return withDelay(undefined);
-}
 
-export function getChannelByMessageId(messageId: string): Promise<Channel | undefined> {
-  const message = messages.get(messageId);
-  if (message) {
-    return withDelay(channels.get(message.channelId));
+  async getChannelBySlug(slug: string): Promise<Channel | undefined> {
+    const db = await this.#connection();
+    return db.first<Channel>(
+      `SELECT ${CHANNEL_COLUMNS} FROM channels WHERE slug = ?`,
+      slug,
+    );
   }
-  return withDelay(undefined);
-}
 
-export function createChannel(name: string, ownerId: string): Promise<Channel> {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/, "-")
-    .replace(/^-+|-+$/, "");
-  for (const channel of channels.values()) {
-    if (channel.slug === slug) {
+  async getChannelByMessageId(messageId: string): Promise<Channel | undefined> {
+    const db = await this.#connection();
+    return db.first<Channel>(
+      `
+      SELECT c.id, c.owner_id AS ownerId, c.slug, c.name
+      FROM messages m
+      JOIN channels c ON c.id = m.channel_id
+      WHERE m.id = ?
+      `,
+      messageId,
+    );
+  }
+
+  async createChannel(name: string, ownerId: string): Promise<Channel> {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/, "-")
+      .replace(/^-+|-+$/, "");
+    const db = await this.#connection();
+    const channel = await db.first<Channel>(
+      `
+      INSERT INTO channels (id, owner_id, slug, name, created_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT (slug) DO NOTHING
+      RETURNING ${CHANNEL_COLUMNS}
+      `,
+      shortId(),
+      ownerId,
+      slug,
+      name,
+      Date.now(),
+    );
+    if (!channel) {
       throw new Error(`Channel with name ${name} already exists`);
     }
-  }
-  const channel: Channel = {
-    id: shortId(10),
-    ownerId,
-    slug,
-    name,
-  };
-  channels.set(channel.id, channel);
-  channelMessages.set(channel.slug, []);
-  return withDelay(channel);
-}
-
-export function getMessages(channelSlug: string): Promise<JoinedMessage[]> {
-  const messagesForChannel = channelMessages.get(channelSlug);
-  return withDelay(
-    messagesForChannel
-      ? (messagesForChannel as JoinedMessage[]).map((message) => {
-          message.authorName =
-            users.get(message.authorId)?.displayName || "Unknown User";
-          message.reactions = [];
-          for (const { messageId, symbol, authorIds } of reactions.values()) {
-            if (messageId === message.id && authorIds.size) {
-              message.reactions.push({
-                symbol,
-                authors: [...authorIds].map((authorId) => ({
-                  authorId,
-                  authorName:
-                    users.get(authorId)?.displayName || "Unknown User",
-                })),
-              });
-            }
-          }
-          return message;
-        })
-      : [],
-  );
-}
-
-export function createMessage(
-  channelId: string,
-  authorId: string,
-  text: string,
-): Promise<Message> {
-  const channel = channels.get(channelId);
-  if (!channel) {
-    throw new Error(`No channel with id ${channelId}`);
+    return channel;
   }
 
-  const message: Message = {
-    id: shortId(),
-    channelId,
-    authorId,
-    text,
-    createdAt: new Date(),
-    editedAt: null,
-  };
-  messages.set(message.id, message);
-  const arr = channelMessages.get(channel!.slug);
-  if (arr) {
-    arr.push(message);
-    arr.sort(compareMessagesByServerTsDesc);
-  }
-  return withDelay(message);
-}
+  async getMessages(channelSlug: string): Promise<JoinedMessage[]> {
+    const db = await this.#connection();
+    const [messageRows, reactionRows] = await Promise.all([
+      db.all<MessageRow & { authorName: string }>(
+        `
+        SELECT
+          m.id,
+          m.channel_id AS channelId,
+          m.author_id AS authorId,
+          m.text,
+          m.created_at AS createdAt,
+          m.edited_at AS editedAt,
+          u.display_name AS authorName
+        FROM channels c
+        JOIN messages m ON m.channel_id = c.id
+        JOIN users u ON u.id = m.author_id
+        WHERE c.slug = ?
+        ORDER BY m.created_at
+        `,
+        channelSlug,
+      ),
+      // Ordered so each reaction's rows are contiguous, reactions in the order
+      // they were first added, and authors in the order they reacted.
+      db.all<{
+        messageId: string;
+        symbol: string;
+        authorId: string;
+        authorName: string;
+      }>(
+        `
+        SELECT
+          r.message_id AS messageId,
+          r.symbol,
+          ru.user_id AS authorId,
+          u.display_name AS authorName
+        FROM channels c
+        JOIN messages m ON m.channel_id = c.id
+        JOIN reactions r ON r.message_id = m.id
+        JOIN reaction_users ru ON ru.reaction_id = r.id
+        JOIN users u ON u.id = ru.user_id
+        WHERE c.slug = ?
+        ORDER BY r.created_at, r.id, ru.created_at
+        `,
+        channelSlug,
+      ),
+    ]);
 
-export function updateMessage(
-  messageId: string,
-  authorId: string,
-  text: string,
-): Promise<Message> {
-  const message = messages.get(messageId);
-  if (!message) {
-    throw new Error(`No message with id ${messageId}`);
-  } else if (message.authorId !== authorId) {
+    const reactionsByMessage = new Map<string, MessageReaction[]>();
+    for (const { messageId, symbol, authorId, authorName } of reactionRows) {
+      let reactions = reactionsByMessage.get(messageId);
+      if (!reactions) {
+        reactionsByMessage.set(messageId, (reactions = []));
+      }
+      let reaction = reactions.at(-1);
+      if (reaction?.symbol !== symbol) {
+        reactions.push((reaction = { symbol, authors: [] }));
+      }
+      reaction.authors.push({ authorId, authorName });
+    }
+
+    return messageRows.map((row) => ({
+      ...toMessage(row),
+      reactions: reactionsByMessage.get(row.id) ?? [],
+    }));
+  }
+
+  async createMessage(
+    channelId: string,
+    authorId: string,
+    text: string,
+  ): Promise<Message> {
+    const db = await this.#connection();
+    // Selecting from `channels` inserts nothing when the channel does not exist.
+    const message = await db.first<MessageRow>(
+      `
+      INSERT INTO messages (id, channel_id, author_id, text, created_at)
+      SELECT ?, id, ?, ?, ? FROM channels WHERE id = ?
+      RETURNING ${MESSAGE_COLUMNS}
+      `,
+      shortId(),
+      authorId,
+      text,
+      Date.now(),
+      channelId,
+    );
+    if (!message) {
+      throw new Error(`No channel with id ${channelId}`);
+    }
+    return toMessage(message);
+  }
+
+  async updateMessage(
+    messageId: string,
+    authorId: string,
+    text: string,
+  ): Promise<Message> {
+    const db = await this.#connection();
+    const message = await db.first<MessageRow>(
+      `
+      UPDATE messages
+      SET
+        text = ?1,
+        edited_at = CASE WHEN text = ?1 THEN edited_at ELSE ?2 END
+      WHERE id = ?3 AND author_id = ?4
+      RETURNING ${MESSAGE_COLUMNS}
+      `,
+      text,
+      Date.now(),
+      messageId,
+      authorId,
+    );
+    if (message) {
+      return toMessage(message);
+    } else if (
+      !(await db.first(`SELECT 1 FROM messages WHERE id = ?`, messageId))
+    ) {
+      throw new Error(`No message with id ${messageId}`);
+    }
     throw new Error(`Cannot edit message for other user`);
   }
-  if (text !== message.text) {
-    message.text = text;
-    message.editedAt = new Date();
-  }
-  return withDelay(message);
-}
 
-export function toggleReaction(
-  messageId: string,
-  authorId: string,
-  symbol: string,
-): Promise<Reaction> {
-  const message = messages.get(messageId);
-  if (!message) {
-    throw new Error(`No message with id ${messageId}`);
-  }
-  const key = `${messageId}:${symbol}`;
-  let reaction = reactions.get(key);
-  if (!reaction) {
-    reaction = {
-      id: shortId(10),
+  /** Adds or removes the user's reaction; resolves whether they now have it. */
+  async toggleReaction(
+    messageId: string,
+    userId: string,
+    symbol: string,
+  ): Promise<boolean> {
+    const db = await this.#connection();
+    const state = await db.first<{ messageExists: number; reacted: number }>(
+      `
+      SELECT
+        EXISTS (SELECT 1 FROM messages WHERE id = ?1) AS messageExists,
+        EXISTS (
+          SELECT 1 FROM reactions r
+          JOIN reaction_users ru ON ru.reaction_id = r.id
+          WHERE r.message_id = ?1 AND r.symbol = ?2 AND ru.user_id = ?3
+        ) AS reacted
+      `,
       messageId,
       symbol,
-      createdAt: new Date(),
-      authorIds: new Set(),
-    };
-    reactions.set(key, reaction);
+      userId,
+    );
+    if (!state?.messageExists) {
+      throw new Error(`No message with id ${messageId}`);
+    }
+
+    // Both branches are idempotent, so a concurrent toggle cannot corrupt them.
+    if (state.reacted) {
+      await db.batch([
+        [
+          `
+          DELETE FROM reaction_users
+          WHERE user_id = ?3
+            AND reaction_id = (
+              SELECT id FROM reactions WHERE message_id = ?1 AND symbol = ?2
+            )
+          `,
+          messageId,
+          symbol,
+          userId,
+        ],
+        [
+          `
+          DELETE FROM reactions
+          WHERE message_id = ? AND symbol = ?
+            AND NOT EXISTS (SELECT 1 FROM reaction_users WHERE reaction_id = reactions.id)
+          `,
+          messageId,
+          symbol,
+        ],
+      ]);
+      return false;
+    }
+
+    const createdAt = Date.now();
+    await db.batch([
+      [
+        `
+        INSERT INTO reactions (id, message_id, symbol, created_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (message_id, symbol) DO NOTHING
+        `,
+        shortId(),
+        messageId,
+        symbol,
+        createdAt,
+      ],
+      [
+        `
+        INSERT INTO reaction_users (reaction_id, user_id, created_at)
+        SELECT id, ?3, ?4 FROM reactions WHERE message_id = ?1 AND symbol = ?2
+        ON CONFLICT DO NOTHING
+        `,
+        messageId,
+        symbol,
+        userId,
+        createdAt,
+      ],
+    ]);
+    return true;
   }
-  if (reaction.authorIds.has(authorId)) {
-    reaction.authorIds.delete(authorId);
-  } else {
-    reaction.authorIds.add(authorId);
-  }
-  return withDelay(reaction);
 }
 
-function compareMessagesByServerTsDesc(a: Message, b: Message) {
-  return b.createdAt.getDate() - a.createdAt.getDate();
-}
-
-function compareUserByDisplayNameAsc(a: User, b: User) {
-  return a.displayName.localeCompare(b.displayName);
-}
-
-async function delay(ms: number = 200) {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function withDelay<T>(value: T): Promise<T> {
-  await delay();
-  return value;
-}
-
-function seed() {
-  const user: User = {
-    id: shortId(10),
-    name: "_system",
-    displayName: "Admin",
-    status: UserStatus.Active,
+function toMessage<T extends MessageRow>(row: T) {
+  return {
+    ...row,
+    createdAt: new Date(row.createdAt),
+    editedAt: row.editedAt === null ? null : new Date(row.editedAt),
   };
-  const channel: Channel = {
-    id: shortId(10),
-    ownerId: user.id,
-    slug: "general",
-    name: "General",
-  };
-  const message: Message = {
-    id: shortId(),
-    channelId: channel.id,
-    authorId: user.id,
-    text: "Welcome!",
-    createdAt: new Date(),
-    editedAt: null,
-  };
-  users.set(user.id, user);
-  channels.set(channel.id, channel);
-  messages.set(message.id, message);
-  channelMessages.set(channel.slug, [message]);
 }

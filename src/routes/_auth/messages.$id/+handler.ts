@@ -1,5 +1,4 @@
 import * as v from "valibot";
-import { updateMessage, getChannelByMessageId } from "../../../server/db";
 import { formError } from "../../../server/utils/validation";
 
 export const POST = Run.POST(
@@ -17,8 +16,8 @@ export const POST = Run.POST(
       );
     } else {
       try {
-        const channel = getChannelByMessageId(ctx.params.id);
-        await updateMessage(ctx.params.id, ctx.data.userId, body.text);
+        const channel = ctx.db.getChannelByMessageId(ctx.params.id);
+        await ctx.db.updateMessage(ctx.params.id, ctx.data.userId, body.text);
         const { slug } = (await channel)!;
         return ctx.redirect(Run.href("/channels/$slug", { params: { slug } }));
       } catch (err) {

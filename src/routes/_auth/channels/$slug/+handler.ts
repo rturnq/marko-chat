@@ -1,12 +1,4 @@
 import * as v from "valibot";
-import {
-  createMessage,
-  getChannelBySlug,
-  getChannels,
-  getMessages,
-  getOnlineMembers,
-  getOfflineMembers,
-} from "../../../../server/db";
 import { formError } from "../../../../server/utils/validation";
 
 export const GET = Run.GET(
@@ -18,11 +10,11 @@ export const GET = Run.GET(
   async (ctx, next) => {
     const { slug } = ctx.params;
     return next({
-      channelList: getChannels(),
-      activeChannel: getChannelBySlug(slug),
-      messages: getMessages(slug),
-      onlineMembers: getOnlineMembers(),
-      offlineMembers: getOfflineMembers(),
+      channelList: ctx.db.getChannels(),
+      activeChannel: ctx.db.getChannelBySlug(slug),
+      messages: ctx.db.getMessages(slug),
+      onlineMembers: ctx.db.getOnlineMembers(),
+      offlineMembers: ctx.db.getOfflineMembers(),
       editId: ctx.search[0].edit,
     });
   },
@@ -36,7 +28,7 @@ export const POST = Run.POST(
   },
   async (ctx) => {
     const { slug } = ctx.params;
-    const channel = await getChannelBySlug(slug);
+    const channel = await ctx.db.getChannelBySlug(slug);
     if (!channel) {
       return new Response(null, { status: 404 });
     }
@@ -48,7 +40,7 @@ export const POST = Run.POST(
       );
     } else {
       try {
-        await createMessage(channel.id, ctx.data.userId, body.text);
+        await ctx.db.createMessage(channel.id, ctx.data.userId, body.text);
       } catch (err) {
         ctx.session.flash("POST:/channels/$slug", formError(err));
       }

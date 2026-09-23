@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { createUser, getDefaultChannel, getUserByName } from "../server/db";
+import type { Db } from "../server/db";
 import { formError } from "../server/utils/validation";
 
 export const GET = Run.GET(
@@ -10,7 +10,7 @@ export const GET = Run.GET(
   },
   async (ctx) => {
     if (ctx.session.has("userId")) {
-      return ctx.redirect(await getChannelHref(ctx.search[0].to));
+      return ctx.redirect(await getChannelHref(ctx.db, ctx.search[0].to));
     }
   },
 );
@@ -25,17 +25,17 @@ export const POST = Run.POST(
     }),
   },
   async (ctx) => {
-    const channelHref = getChannelHref(ctx.search[0].to);
+    const channelHref = getChannelHref(ctx.db, ctx.search[0].to);
     const [body, issues] = await ctx.body;
     if (issues) {
       ctx.session.flash("POST:/", formError("Invalid login", issues));
       return ctx.redirect(ctx.url);
     }
 
-    let user = await getUserByName(body.name);
+    let user = await ctx.db.getUserByName(body.name);
     if (!user) {
       try {
-        user = await createUser(body.name);
+        user = await ctx.db.createUser(body.name);
       } catch (err) {
         ctx.session.flash("POST:/", formError(err));
         return ctx.redirect(ctx.url);
@@ -49,10 +49,10 @@ export const POST = Run.POST(
   },
 );
 
-async function getChannelHref(returnUrl?: string) {
+async function getChannelHref(db: Db, returnUrl?: string) {
   if (returnUrl) {
     return returnUrl;
   }
-  const { slug } = await getDefaultChannel();
+  const { slug } = await db.getDefaultChannel();
   return Run.href("/channels/$slug", { params: { slug } });
 }

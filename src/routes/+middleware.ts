@@ -1,3 +1,4 @@
+import db from "../server/middleware/db";
 import remix from "../server/middleware/remix";
 import session from "../server/middleware/session";
 
@@ -9,5 +10,6 @@ export default Run.ALL([
       console.log(err);
     }
   },
+  db,
   ...remix(session),
 ]);
