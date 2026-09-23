@@ -359,84 +359,86 @@ export class Db {
     throw new Error(`Cannot edit message for other user`);
   }
 
-  /** Adds or removes the user's reaction; resolves whether they now have it. */
-  async toggleReaction(
+  /** Adds the user's reaction; a no-op if they already have it. */
+  async addReaction(
     messageId: string,
     userId: string,
     symbol: string,
-  ): Promise<boolean> {
+  ): Promise<void> {
     const db = await this.#connection();
-    const state = await db.first<{ messageExists: number; reacted: number }>(
-      `
-      SELECT
-        EXISTS (SELECT 1 FROM messages WHERE id = ?1) AS messageExists,
-        EXISTS (
-          SELECT 1 FROM reactions r
-          JOIN reaction_users ru ON ru.reaction_id = r.id
-          WHERE r.message_id = ?1 AND r.symbol = ?2 AND ru.user_id = ?3
-        ) AS reacted
-      `,
-      messageId,
-      symbol,
-      userId,
-    );
-    if (!state?.messageExists) {
-      throw new Error(`No message with id ${messageId}`);
-    }
-
-    // Both branches are idempotent, so a concurrent toggle cannot corrupt them.
-    if (state.reacted) {
+    const createdAt = Date.now();
+    try {
       await db.batch([
         [
           `
-          DELETE FROM reaction_users
-          WHERE user_id = ?3
-            AND reaction_id = (
-              SELECT id FROM reactions WHERE message_id = ?1 AND symbol = ?2
-            )
+          INSERT INTO reactions (id, message_id, symbol, created_at)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT (message_id, symbol) DO NOTHING
+          `,
+          shortId(),
+          messageId,
+          symbol,
+          createdAt,
+        ],
+        [
+          `
+          INSERT INTO reaction_users (reaction_id, user_id, created_at)
+          SELECT id, ?3, ?4 FROM reactions WHERE message_id = ?1 AND symbol = ?2
+          ON CONFLICT DO NOTHING
           `,
           messageId,
           symbol,
           userId,
-        ],
-        [
-          `
-          DELETE FROM reactions
-          WHERE message_id = ? AND symbol = ?
-            AND NOT EXISTS (SELECT 1 FROM reaction_users WHERE reaction_id = reactions.id)
-          `,
-          messageId,
-          symbol,
+          createdAt,
         ],
       ]);
-      return false;
+    } catch (err) {
+      // `ON CONFLICT` does not cover foreign keys, so a missing message or user
+      // fails the batch; node:sqlite and D1 both report SQLite's message.
+      if (
+        err instanceof Error &&
+        err.message.includes("FOREIGN KEY constraint failed")
+      ) {
+        throw new Error("Cannot add reaction: message or user not found", {
+          cause: err,
+        });
+      }
+      throw err;
     }
+  }
 
-    const createdAt = Date.now();
+  /**
+   * Removes the user's reaction, and the reaction itself once nobody has it; a
+   * no-op if they do not have it.
+   */
+  async removeReaction(
+    messageId: string,
+    userId: string,
+    symbol: string,
+  ): Promise<void> {
+    const db = await this.#connection();
     await db.batch([
       [
         `
-        INSERT INTO reactions (id, message_id, symbol, created_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT (message_id, symbol) DO NOTHING
-        `,
-        shortId(),
-        messageId,
-        symbol,
-        createdAt,
-      ],
-      [
-        `
-        INSERT INTO reaction_users (reaction_id, user_id, created_at)
-        SELECT id, ?3, ?4 FROM reactions WHERE message_id = ?1 AND symbol = ?2
-        ON CONFLICT DO NOTHING
+        DELETE FROM reaction_users
+        WHERE user_id = ?3
+          AND reaction_id = (
+            SELECT id FROM reactions WHERE message_id = ?1 AND symbol = ?2
+          )
         `,
         messageId,
         symbol,
         userId,
-        createdAt,
+      ],
+      [
+        `
+        DELETE FROM reactions
+        WHERE message_id = ? AND symbol = ?
+          AND NOT EXISTS (SELECT 1 FROM reaction_users WHERE reaction_id = reactions.id)
+        `,
+        messageId,
+        symbol,
       ],
     ]);
-    return true;
   }
 }
