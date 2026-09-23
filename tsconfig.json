@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "verbatimModuleSyntax": true,
     "types": ["vite/client"]
   }
