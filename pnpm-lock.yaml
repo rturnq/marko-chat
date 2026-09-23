@@ -14,6 +14,18 @@ importers:
 
   .:
     dependencies:
+      '@remix-run/cookie':
+        specifier: ^0.7.0
+        version: 0.7.0
+      '@remix-run/fetch-router':
+        specifier: ^0.22.1
+        version: 0.22.1
+      '@remix-run/session':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@remix-run/session-middleware':
+        specifier: ^0.5.0
+        version: 0.5.0
       marko:
         specifier: link:.marko-src/link/node_modules/marko
         version: link:.marko-src/link/node_modules/marko
@@ -30,6 +42,9 @@ importers:
       '@marko/vite':
         specifier: file:.marko-src/tarballs/marko-vite.tgz
         version: file:.marko-src/tarballs/marko-vite.tgz(@marko/compiler@marko-src+link+node_modules+@marko+compiler)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.27.7)(jiti@2.7.0))
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@types/node':
         specifier: ^26.3.0
         version: 26.6.2
@@ -644,6 +659,12 @@ packages:
     resolution: {integrity: sha512-Ejx1P/mj+kMjQb8/y5XxDUn4reGdr+WyKYloBljpppUy8gs42T+BNoEOuRYqDVdgPc6NxduzIDoJS9pOFfV5Ew==}
     engines: {node: ^12.18.3 || >=14}
 
+  '@remix-run/cookie@0.7.0':
+    resolution: {integrity: sha512-j49KZ4pK7HoLorl3OrS7RHVgKIwf/HPndJSzVGQd2VbbdOq8f//dIYs0nKsZ9CSll5p2r3g7/N2ivxnUDYPBCA==}
+
+  '@remix-run/fetch-router@0.22.1':
+    resolution: {integrity: sha512-pe0FcjhOU+ChzpRWQnMde9UPCrLWDbrHv3/mubcpf3fM3jFP95aS/C0ZqzPhbgHUf2iVu6R2XnCtRAgXTxMFIQ==}
+
   '@remix-run/form-data-parser@0.17.6':
     resolution: {integrity: sha512-/pFSz67srxk+4pVXFsJCyF6vPMVtkp+15p66DChdn8Os0LvRt1U4E+0OaXv25VRx5/FsTVwuCr7cPJVI/k4wJQ==}
 
@@ -652,6 +673,15 @@ packages:
 
   '@remix-run/multipart-parser@0.16.5':
     resolution: {integrity: sha512-Pt4JxLl10z8xSYw7Fo9VNCCajzNbNXoWNPeOb2JlWSsAcdWV8LoWiUmUu3sLvWsKHoDl7oqErVzp4DYcPElRQg==}
+
+  '@remix-run/route-pattern@0.24.1':
+    resolution: {integrity: sha512-HRee7tz2Ct7QdTQGDErHcVTAlXa5BBV6GOLEa/INw21ceTWTWlaU13FJupYVX0k1mh608rod880+SA5NlTPPfw==}
+
+  '@remix-run/session-middleware@0.5.0':
+    resolution: {integrity: sha512-FT32iX1U0G1OcPkCn02ElvZfSZWbPK4NiA4LgXVGrjOA3BmRLOgwUgkqEKWrFMlpFGDWsPF22Bymc/l0/vMprQ==}
+
+  '@remix-run/session@0.4.2':
+    resolution: {integrity: sha512-NGzu6/gC5xD/tq40W0WqzTt4JhCdSCIwDHM1aa13JBqb4Ml/Mb0kmXqjfOe/gBYfu6AA11nRQ/BJyr+VduTodA==}
 
   '@rolldown/binding-android-arm-eabi@1.2.9':
     resolution: {integrity: sha512-tNISae1QEf/vkb3xkRcjV5SEdzPE97We5IVaa2Z8jSszQPZ8U60B/YCYpw4QI7VidYsBtKavczXf+DyDs9WGxw==}
@@ -1850,6 +1880,14 @@ snapshots:
     dependencies:
       detect-libc: 1.0.3
 
+  '@remix-run/cookie@0.7.0':
+    dependencies:
+      '@remix-run/headers': 0.21.2
+
+  '@remix-run/fetch-router@0.22.1':
+    dependencies:
+      '@remix-run/route-pattern': 0.24.1
+
   '@remix-run/form-data-parser@0.17.6':
     dependencies:
       '@remix-run/headers': 0.21.2
@@ -1860,6 +1898,16 @@ snapshots:
   '@remix-run/multipart-parser@0.16.5':
     dependencies:
       '@remix-run/headers': 0.21.2
+
+  '@remix-run/route-pattern@0.24.1': {}
+
+  '@remix-run/session-middleware@0.5.0':
+    dependencies:
+      '@remix-run/cookie': 0.7.0
+      '@remix-run/fetch-router': 0.22.1
+      '@remix-run/session': 0.4.2
+
+  '@remix-run/session@0.4.2': {}
 
   '@rolldown/binding-android-arm-eabi@1.2.9':
     optional: true

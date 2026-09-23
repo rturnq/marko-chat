@@ -1,18 +1,15 @@
-<const/{ messages, error }=$global.data>
-
-<ol class='messages'>
-  <for|message| of=messages by='id'>
-    <li class='message'>
-      <span class='message-author'>${message.author}</span><span>${message.text}</span>
-    </li>
-  </for>
-</ol>
-
-<form class='composer' method='post'>
-  <if=error>
-    <p class='error' role='alert'>${error}</p>
+<form method="post">
+  <const/loginError=$global.session.get("POST:/")>
+  <if=loginError>
+    <p class="error" role="alert">${loginError.message}</p>
   </if>
-  <input autocomplete='nickname' name='author' placeholder='Name (optional)'>
-  <textarea name='text' placeholder='Type a message' required rows='3'/>
-  <button type='submit'>Send</button>
+  <label>
+    <if=loginError?.fields?.name>
+      <p class="error" role="alert">${loginError.fields.name}</p>
+    </if>
+    <span>Name</span>
+    <input type="text" name="name" required>
+  </label>
+  // <input type="hidden" name="returnUrl" value=$global.search.returnUrl>
+  <button type="submit">Login</button>
 </form>

@@ -1,19 +1,58 @@
-import * as v from 'valibot';
-import { addMessage, listMessages } from '../lib/messages';
+import * as v from "valibot";
+import { createUser, getDefaultChannel, getUserByName } from "../server/db";
+import { formError } from "../server/utils/validation";
 
-const messageForm = v.object({
-  author: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(40)), ''),
-  text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(2000)),
-});
+export const GET = Run.GET(
+  {
+    search: v.object({
+      to: v.optional(v.string()),
+    }),
+  },
+  async (ctx) => {
+    if (ctx.session.has("userId")) {
+      return ctx.redirect(await getChannelHref(ctx.search[0].to));
+    }
+  },
+);
 
-export const GET = Run.GET((ctx, next) => next({ error: undefined, messages: listMessages() }));
+export const POST = Run.POST(
+  {
+    search: v.object({
+      to: v.optional(v.string()),
+    }),
+    form: v.object({
+      name: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(100)),
+    }),
+  },
+  async (ctx) => {
+    const channelHref = getChannelHref(ctx.search[0].to);
+    const [body, issues] = await ctx.body;
+    if (issues) {
+      ctx.session.flash("POST:/", formError("Invalid login", issues));
+      return ctx.redirect(ctx.url);
+    }
 
-// Plain <form method="post">: validate, append, then POST-redirect-GET.
-export const POST = Run.POST({ form: messageForm }, async (ctx, next) => {
-  const [body, issues] = await ctx.body;
-  if (issues) {
-    return next({ error: "Message can't be empty", messages: listMessages() });
+    let user = await getUserByName(body.name);
+    if (!user) {
+      try {
+        user = await createUser(body.name);
+      } catch (err) {
+        ctx.session.flash("POST:/", formError(err));
+        return ctx.redirect(ctx.url);
+      }
+    }
+
+    ctx.session.regenerateId();
+    ctx.session.set("userId", user.id);
+
+    return ctx.redirect(await channelHref);
+  },
+);
+
+async function getChannelHref(returnUrl?: string) {
+  if (returnUrl) {
+    return returnUrl;
   }
-  addMessage(body.author || 'anonymous', body.text);
-  return ctx.redirect('/', 303);
-});
+  const { slug } = await getDefaultChannel();
+  return Run.href("/channels/$slug", { params: { slug } });
+}
