@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import type { Db } from "../server/db";
 import { formError } from "../server/utils/validation";
+import { tryGetSameOriginUrl } from "../utils/url";
 
 export const GET = Run.GET(
   {
@@ -10,7 +10,13 @@ export const GET = Run.GET(
   },
   async (ctx) => {
     if (ctx.session.has("userId")) {
-      return ctx.redirect(await getChannelHref(ctx.db, ctx.search[0].to));
+      const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
+      return ctx.redirect(
+        returnUrl ||
+          Run.href("/channels/$slug", {
+            params: { slug: (await ctx.db.getDefaultChannel())!.slug },
+          }),
+      );
     }
   },
 );
@@ -25,7 +31,9 @@ export const POST = Run.POST(
     }),
   },
   async (ctx) => {
-    const channelHref = getChannelHref(ctx.db, ctx.search[0].to);
+    // start early but don't await until we need it.
+    const defaultChannel = ctx.db.getDefaultChannel().catch(() => undefined);
+
     const [body, issues] = await ctx.body;
     if (issues) {
       ctx.session.flash("POST:/", formError("Invalid login", issues));
@@ -45,14 +53,12 @@ export const POST = Run.POST(
     ctx.session.regenerateId();
     ctx.session.set("userId", user.id);
 
-    return ctx.redirect(await channelHref);
+    const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
+    return ctx.redirect(
+      returnUrl ||
+        Run.href("/channels/$slug", {
+          params: { slug: (await defaultChannel)!.slug },
+        }),
+    );
   },
 );
-
-async function getChannelHref(db: Db, returnUrl?: string) {
-  if (returnUrl) {
-    return returnUrl;
-  }
-  const { slug } = await db.getDefaultChannel();
-  return Run.href("/channels/$slug", { params: { slug } });
-}
