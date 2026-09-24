@@ -3,42 +3,19 @@ import type { Message } from "../server/db";
 export interface Input {
   message: Message;
   viewerId: string;
-  editing: boolean;
-  /** The page to show once the message is edited or deleted. */
-  returnUrl: string;
-  /** This page with this message in edit mode. */
-  editHref: string;
+  /** Shown in place of the message's text, such as an edit form. */
+  text?: Marko.AttrTag<{ content: Marko.Body }>;
+  /** Controls shown after the reactions. */
+  content?: Marko.Body;
 }
 
 <const/{ message }=input>
-<const/isAuthor=message.authorId === input.viewerId>
-<const/action=Run.href("/messages/$id", { params: { id: message.id } })>
-<id/editFormId>
 
 <li class="message">
   <div>
     <span class="message-author">${message.authorName}</span>
-    <if=input.editing && isAuthor>
-      <form id=editFormId method="post" action=action>
-        <input type="hidden" name="returnUrl" value=input.returnUrl>
-        <const/error=$global.session?.get("POST:/messages/$id")>
-        <if=error>
-          <p class="error" role="alert">${error.message}</p>
-        </if>
-        <label>
-          <if=error?.fields?.text>
-            <p class="error" role="alert">${error.fields.text}</p>
-          </if>
-          <textarea
-            name="text"
-            placeholder="Type a message"
-            required
-            rows="3"
-            autocomplete="off"
-            value=message.text
-          />
-        </label>
-      </form>
+    <if=input.text>
+      <${input.text.content}/>
     </if>
     <else>
       <span>${message.text}</span>
@@ -50,20 +27,6 @@ export interface Input {
       reactions=message.reactions
       viewerId=input.viewerId
     />
-    <if=isAuthor>
-      <if=input.editing>
-        <button type="submit" form=editFormId name="command" value="edit">
-          Save
-        </button>
-        <a href=input.returnUrl>Cancel</a>
-      </if>
-      <else>
-        <a href=input.editHref>Edit</a>
-        <form method="post" action=action>
-          <input type="hidden" name="returnUrl" value=input.returnUrl>
-          <button type="submit" name="command" value="delete">Delete</button>
-        </form>
-      </else>
-    </if>
+    <${input.content}/>
   </div>
 </li>

@@ -24,13 +24,17 @@ export interface Input {
     </if>
     <ol class="messages">
       <for|message| of=page.messages by="id">
-        <app-message
-          message=message
-          viewerId=input.viewerId
-          editing=message.id === input.editId
-          returnUrl=returnUrl
-          editHref=withSearch(input.url, { edit: message.id })
-        />
+        <if=message.authorId === input.viewerId>
+          <app-own-message
+            message=message
+            editing=message.id === input.editId
+            returnUrl=returnUrl
+            editHref=withSearch(input.url, { edit: message.id })
+          />
+        </if>
+        <else>
+          <app-message message=message viewerId=input.viewerId/>
+        </else>
       </for>
     </ol>
     <if=page.newer>
