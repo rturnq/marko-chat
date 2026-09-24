@@ -8,9 +8,13 @@ export interface Input {
   action=Run.href("/channels/$slug", { params: { slug: input.channelSlug } })
 >
   <const/error=$global.session?.get("POST:/channels/$slug")>
-  <ui-error message=error?.message/>
+  <if=error>
+    <p class="error" role="alert">${error.message}</p>
+  </if>
   <label>
-    <ui-error message=error?.fields?.text/>
+    <if=error?.fields?.text>
+      <p class="error" role="alert">${error.fields.text}</p>
+    </if>
     <textarea
       name="text"
       placeholder="Type a message"

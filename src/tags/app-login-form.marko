@@ -1,9 +1,13 @@
 // Posts to the current URL, so a `?to=` return URL survives the login.
 <form method="post">
   <const/error=$global.session?.get("POST:/")>
-  <ui-error message=error?.message/>
+  <if=error>
+    <p class="error" role="alert">${error.message}</p>
+  </if>
   <label>
-    <ui-error message=error?.fields?.name/>
+    <if=error?.fields?.name>
+      <p class="error" role="alert">${error.fields.name}</p>
+    </if>
     <span>Name</span>
     <input type="text" name="name" required>
   </label>

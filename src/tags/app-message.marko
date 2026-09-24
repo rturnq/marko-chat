@@ -22,9 +22,13 @@ export interface Input {
       <form id=editFormId method="post" action=action>
         <input type="hidden" name="returnUrl" value=input.returnUrl>
         <const/error=$global.session?.get("POST:/messages/$id")>
-        <ui-error message=error?.message/>
+        <if=error>
+          <p class="error" role="alert">${error.message}</p>
+        </if>
         <label>
-          <ui-error message=error?.fields?.text/>
+          <if=error?.fields?.text>
+            <p class="error" role="alert">${error.fields.text}</p>
+          </if>
           <textarea
             name="text"
             placeholder="Type a message"
