@@ -1,0 +1,9 @@
+<form method="post" action=Run.href("/channels")>
+  <const/error=$global.session?.get("POST:/channels")>
+  <ui-error message=error?.message/>
+  <label>
+    <ui-error message=error?.fields?.name/>
+    <input type="text" name="name">
+  </label>
+  <button type="submit">New</button>
+</form>

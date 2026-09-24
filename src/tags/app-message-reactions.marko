@@ -1,0 +1,38 @@
+import type { Reaction } from "../server/db";
+
+static const SYMBOLS = ["🙂", "🙁", "❤️", "👍", "👎"];
+
+export interface Input {
+  messageId: string;
+  reactions: Reaction[];
+  viewerId: string;
+}
+
+<const/action=Run.href("/messages/$id/reaction", {
+  params: { id: input.messageId },
+})>
+
+<for|reaction| of=input.reactions by="symbol">
+  <const/reacted=reaction.authors.some(
+    (author) => author.authorId === input.viewerId,
+  )>
+  <form method="post" action=action>
+    <button
+      type="submit"
+      name=(reacted ? "remove" : "add")
+      value=reaction.symbol
+      aria-pressed=(reacted ? "true" : "false")
+      title=`${reaction.authors.map((author) => (author.authorId === input.viewerId ? "you" : author.authorName)).join(", ")} reacted`
+    >
+      ${reaction.symbol} ${reaction.authors.length}
+    </button>
+  </form>
+</for>
+
+<ui-popover label="🙂" title="Add a reaction">
+  <form method="post" action=action>
+    <for|symbol| of=SYMBOLS>
+      <button type="submit" name="add" value=symbol>${symbol}</button>
+    </for>
+  </form>
+</ui-popover>

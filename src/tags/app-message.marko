@@ -1,0 +1,65 @@
+import type { Message } from "../server/db";
+
+export interface Input {
+  message: Message;
+  viewerId: string;
+  editing: boolean;
+  /** The page to show once the message is edited or deleted. */
+  returnUrl: string;
+  /** This page with this message in edit mode. */
+  editHref: string;
+}
+
+<const/{ message }=input>
+<const/isAuthor=message.authorId === input.viewerId>
+<const/action=Run.href("/messages/$id", { params: { id: message.id } })>
+<id/editFormId>
+
+<li class="message">
+  <div>
+    <span class="message-author">${message.authorName}</span>
+    <if=input.editing && isAuthor>
+      <form id=editFormId method="post" action=action>
+        <input type="hidden" name="returnUrl" value=input.returnUrl>
+        <const/error=$global.session?.get("POST:/messages/$id")>
+        <ui-error message=error?.message/>
+        <label>
+          <ui-error message=error?.fields?.text/>
+          <textarea
+            name="text"
+            placeholder="Type a message"
+            required
+            rows="3"
+            autocomplete="off"
+            value=message.text
+          />
+        </label>
+      </form>
+    </if>
+    <else>
+      <span>${message.text}</span>
+    </else>
+  </div>
+  <div>
+    <app-message-reactions
+      messageId=message.id
+      reactions=message.reactions
+      viewerId=input.viewerId
+    />
+    <if=isAuthor>
+      <if=input.editing>
+        <button type="submit" form=editFormId name="command" value="edit">
+          Save
+        </button>
+        <a href=input.returnUrl>Cancel</a>
+      </if>
+      <else>
+        <a href=input.editHref>Edit</a>
+        <form method="post" action=action>
+          <input type="hidden" name="returnUrl" value=input.returnUrl>
+          <button type="submit" name="command" value="delete">Delete</button>
+        </form>
+      </else>
+    </if>
+  </div>
+</li>

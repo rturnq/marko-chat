@@ -1,0 +1,35 @@
+import type { MessagePage } from "../server/db";
+import { withSearch } from "../utils/url";
+
+export interface Input {
+  page: MessagePage | Promise<MessagePage>;
+  viewerId: string;
+  /** The message being edited, if any. */
+  editId?: string;
+  /** The current page's URL; links keep its other search parameters. */
+  url: URL;
+}
+
+<const/returnUrl=withSearch(input.url, { edit: undefined })>
+
+<ui-await|page| value=input.page>
+  <@placeholder>
+    <p>Loading messages...</p>
+  </@placeholder>
+  <ui-pager
+    previousHref=(page.older && withSearch(input.url, { cursor: page.older, edit: undefined }))
+    nextHref=(page.newer && withSearch(input.url, { cursor: page.newer, edit: undefined }))
+  >
+    <ol class="messages">
+      <for|message| of=page.messages by="id">
+        <app-message
+          message=message
+          viewerId=input.viewerId
+          editing=message.id === input.editId
+          returnUrl=returnUrl
+          editHref=withSearch(input.url, { edit: message.id })
+        />
+      </for>
+    </ol>
+  </ui-pager>
+</ui-await>

@@ -1,0 +1,20 @@
+import type { User } from "../server/db";
+
+export interface Input {
+  title: string;
+  members: User[] | Promise<User[]>;
+}
+
+<details open>
+  <summary>${input.title}</summary>
+  <ui-await|members| value=input.members>
+    <ul>
+      <for|member| of=members by="id">
+        <li>
+          <app-status-icon status=member.status/>
+          <span>${member.displayName}</span>
+        </li>
+      </for>
+    </ul>
+  </ui-await>
+</details>

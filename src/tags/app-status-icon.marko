@@ -1,0 +1,13 @@
+import { UserStatus } from "../server/db";
+
+static const ICONS = {
+  [UserStatus.Active]: "●",
+  [UserStatus.Away]: "◔",
+  [UserStatus.Offline]: "○",
+};
+
+export interface Input {
+  status: UserStatus;
+}
+
+<span>${ICONS[input.status]}</span>

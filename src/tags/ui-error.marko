@@ -1,0 +1,7 @@
+export interface Input {
+  message?: string;
+}
+
+<if=input.message>
+  <p class="error" role="alert">${input.message}</p>
+</if>

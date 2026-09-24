@@ -23,6 +23,16 @@ declare module "@marko/run" {
   }
 }
 
+// Types `$global.session` in tags outside the routes, which see only
+// `Marko.Global`; tags read form errors flashed by the handlers from it.
+declare global {
+  namespace Marko {
+    interface Global {
+      session?: Session<SessionData, FlashData>;
+    }
+  }
+}
+
 const storage = createCookieSessionStorage();
 const cookie = createCookie("$", {
   httpOnly: true,

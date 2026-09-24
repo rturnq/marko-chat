@@ -1,0 +1,23 @@
+export interface Input {
+  channelSlug: string;
+}
+
+<form
+  class="composer"
+  method="post"
+  action=Run.href("/channels/$slug", { params: { slug: input.channelSlug } })
+>
+  <const/error=$global.session?.get("POST:/channels/$slug")>
+  <ui-error message=error?.message/>
+  <label>
+    <ui-error message=error?.fields?.text/>
+    <textarea
+      name="text"
+      placeholder="Type a message"
+      required
+      rows="3"
+      autocomplete="off"
+    />
+  </label>
+  <button type="submit">Send</button>
+</form>

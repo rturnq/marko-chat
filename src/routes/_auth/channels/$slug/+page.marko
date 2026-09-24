@@ -1,18 +1,3 @@
-import { UserStatus } from "../../../../server/db";
-import { withSearch } from "../../../../utils/url";
-
-static const UserStatuses = {
-  Active: UserStatus.Active,
-  Away: UserStatus.Away,
-  Offline: UserStatus.Offline,
-};
-
-static const UserStatusIcons = {
-  [UserStatus.Active]: "●",
-  [UserStatus.Away]: "◔",
-  [UserStatus.Offline]: "○",
-};
-
 <const/{
   userId,
   editId,
@@ -23,290 +8,44 @@ static const UserStatusIcons = {
   onlineMembers,
   offlineMembers,
 }=$global.data>
+<const/{ slug }=$global.params>
 
-<form method="post" action=Run.href("/logout")>
-  <button type="submit">Logout</button>
-</form>
-<button popovertarget="status-menu">Status</button>
-<div id="status-menu" class="popover-menu" popover>
-  <try>
+<header>
+  <app-logout-form/>
+  <app-status-menu user=me/>
+</header>
+
+<nav class="channels">
+  <app-channel-list channels=channelList activeSlug=slug/>
+  <app-channel-form/>
+</nav>
+
+<section class="active">
+  <ui-await|channel| value=activeChannel>
     <@placeholder>
+      <h1>${slug}</h1>
       <p>Loading...</p>
     </@placeholder>
-    <await|user|=me>
-      <if=user>
-        <form method="post" action=Run.href("/me/status")>
-          <for|label, status| in=UserStatuses>
-            <button
-              type="submit"
-              name="status"
-              value="" + status
-              disabled=user.status === status
-              title=label
-            >
-              ${UserStatusIcons[status]}
-            </button>
-          </for>
-        </form>
-      </if>
-      <else>
-        <p>Uhh, you don't exist.</p>
-      </else>
-    </await>
-  </try>
-</div>
-
-<style>
-  .popover-menu:popover-open {
-    /* 1. Reset browser defaults */
-    position: absolute;
-    inset: unset;
-    margin: 0;
-
-    /* 2. Position it directly underneath the button, flushing left */
-    position-area: bottom span-right;
-
-    /* 3. (Optional) Smart fallback: flips above the button if it hits the bottom of the screen */
-    position-try-fallbacks: flip-block;
-  }
-</style>
-
-<div class="channels">
-  <try>
-    <@placeholder>
-      <p>Loading...</p>
-    </@placeholder>
-    <await|channels|=channelList>
-      <ul>
-        <for|channel| of=channels>
-          <li>
-            <a href=Run.href("/channels/$slug", {
-              params: { slug: channel.slug },
-            })>
-              ${channel.name}
-            </a>
-          </li>
-        </for>
-      </ul>
-    </await>
-  </try>
-  <form method="post" action=Run.href("/channels")>
-    <const/channelError=$global.session.get("POST:/channels")>
-    <if=channelError>
-      <p class="error" role="alert">${channelError.message}</p>
+    <if=channel>
+      <h1>${channel.name}</h1>
+      <div class="scroll">
+        <app-message-list
+          page=messages
+          viewerId=userId
+          editId=editId
+          url=$global.url
+        />
+      </div>
+      <app-message-composer channelSlug=channel.slug/>
     </if>
-    <label>
-      <if=channelError?.fields?.name>
-        <p class="error" role="alert">${channelError.fields.name}</p>
-      </if>
-      <input type="text" name="name">
-    </label>
-    <button type="submit">New</button>
-  </form>
-</div>
+    <else>
+      <h1>Whoops</h1>
+      <p>Looks like this channel doesn't exist</p>
+    </else>
+  </ui-await>
+</section>
 
-<div class="active">
-  <try>
-    <@placeholder>
-      <h1>${$global.params.slug}</h1>
-      <p>Loading...</p>
-    </@placeholder>
-
-    <await|channel|=activeChannel>
-      <if=channel>
-        <h1>${channel.name}</h1>
-
-        <div class="scroll">
-          <try>
-            <@placeholder>
-              <p>Loading messages...</p>
-            </@placeholder>
-            <ol class="messages">
-              <await|page|=messages>
-                <if=page.older>
-                  <a href=Run.href("/channels/$slug", {
-                    params: { slug: $global.params.slug },
-                    search: { cursor: page.older },
-                  })>
-                    Previous
-                  </a>
-                </if>
-                <for|message| of=page.messages by="id">
-                  <li class="message">
-                    <div>
-                      <span class="message-author">${message.authorName}</span>
-                      <if=message.id === editId && message.authorId === userId>
-                        <form
-                          id="edit-message-form"
-                          method="post"
-                          action=Run.href("/messages/$id", {
-                            params: { id: message.id },
-                          })
-                        >
-                          <input type="hidden" name="returnUrl" value=withSearch($global.url, { edit: undefined })>
-                          <const/editError=$global.session.get(
-                            "POST:/messages/$id",
-                          )>
-                          <if=editError>
-                            <p class="error" role="alert">
-                              ${editError.message}
-                            </p>
-                          </if>
-                          <label>
-                            <if=editError?.fields?.text>
-                              <p class="error" role="alert">
-                                ${editError.fields.text}
-                              </p>
-                            </if>
-                            <textarea
-                              name="text"
-                              placeholder="Type a message"
-                              required
-                              rows="3"
-                              autocomplete="off"
-                            >
-                                ${message.text}
-                              </textarea>
-                          </label>
-                        </form>
-                      </if>
-                      <else><span>${message.text}</span></else>
-                    </div>
-                    <div>
-                      <for|reaction| of=message.reactions>
-                        <form
-                          method="post"
-                          action=Run.href("/messages/$id/reaction", {
-                            params: { id: message.id },
-                          })
-                        >
-                          <button
-                            type="submit"
-                            name=(
-                              reaction.authors.some(
-                                (user) => user.authorId === userId,
-                              )
-                                ? "remove"
-                                : "add"
-                            )
-                            value=reaction.symbol
-                            title=`${reaction.authors.map((user) => (user.authorId === userId ? "you" : user.authorName)).join(", ")} reacted`
-                          >
-                            ${reaction.symbol} ${reaction.authors.length}
-                          </button>
-                        </form>
-                      </for>
-                      <id/menuId>
-                      <button popovertarget=menuId>🙂</button>
-                      <div id=menuId class="popover-menu" popover>
-                        <form
-                          method="post"
-                          action=Run.href("/messages/$id/reaction", {
-                            params: { id: message.id },
-                          })
-                        >
-                          <for|symbol| of=["🙂", "🙁", "❤️", "👍", "👎"]>
-                            <button type="submit" name="add" value=symbol>
-                              ${symbol}
-                            </button>
-                          </for>
-                        </form>
-                      </div>
-                      <if=message.authorId === userId>
-                        <if=message.id === editId>
-                          <button type="submit" form="edit-message-form" name="command" value="edit">
-                            Save
-                          </button>
-                          <a href=withSearch($global.url, { edit: undefined })>Cancel</a>
-                        </if>
-                        <else>
-                          <a href=withSearch($global.url, { edit: message.id })>Edit</a>
-                          <form method="post" action=Run.href("/messages/$id", {
-                            params: { id: message.id },
-                          })>
-                            <input type="hidden" name="returnUrl" value=withSearch($global.url, { edit: undefined })>
-                            <button type="submit" name="command" value="delete">
-                              Delete
-                            </button>
-                          </form>
-                        </else>
-                      </if>
-                    </div>
-                  </li>
-                </for>
-                <if=page.newer>
-                  <a href=Run.href("/channels/$slug", {
-                    params: { slug: $global.params.slug },
-                    search: { cursor: page.newer },
-                  })>
-                    Next
-                  </a>
-                </if>
-              </await>
-            </ol>
-          </try>
-        </div>
-
-        <form class="composer" method="post">
-          <const/messageError=$global.session.get("POST:/channels/$slug")>
-          <if=messageError>
-            <p class="error" role="alert">${messageError.message}</p>
-          </if>
-          <label>
-            <if=messageError?.fields?.text>
-              <p class="error" role="alert">${messageError.fields.text}</p>
-            </if>
-            <textarea
-              name="text"
-              placeholder="Type a message"
-              required
-              rows="3"
-              autocomplete="off"
-            />
-          </label>
-          <button type="submit">Send</button>
-        </form>
-      </if>
-      <else>
-        <h1>Whoops</h1>
-        <p>Looks like this channel doesn't exist</p>
-      </else>
-    </await>
-  </try>
-</div>
-
-<div class="members">
-  <details open>
-    <summary>Online</summary>
-    <try>
-      <@placeholder>Loading...</@placeholder>
-      <await|members|=onlineMembers>
-        <ul>
-          <for|member| of=members>
-            <li>
-              <span>${UserStatusIcons[member.status]}</span>
-              <span>${member.displayName}</span>
-            </li>
-          </for>
-        </ul>
-      </await>
-    </try>
-  </details>
-
-  <details open>
-    <summary>Offline</summary>
-    <try>
-      <@placeholder>Loading...</@placeholder>
-      <await|members|=offlineMembers>
-        <ul>
-          <for|member| of=members>
-            <li>
-              <span>${UserStatusIcons[member.status]}</span>
-              <span>${member.displayName}</span>
-            </li>
-          </for>
-        </ul>
-      </await>
-    </try>
-  </details>
-</div>
+<aside class="members">
+  <app-member-list title="Online" members=onlineMembers/>
+  <app-member-list title="Offline" members=offlineMembers/>
+</aside>

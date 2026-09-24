@@ -1,15 +1,1 @@
-<form method="post">
-  <const/loginError=$global.session.get("POST:/")>
-  <if=loginError>
-    <p class="error" role="alert">${loginError.message}</p>
-  </if>
-  <label>
-    <if=loginError?.fields?.name>
-      <p class="error" role="alert">${loginError.fields.name}</p>
-    </if>
-    <span>Name</span>
-    <input type="text" name="name" required>
-  </label>
-  // <input type="hidden" name="returnUrl" value=$global.search.returnUrl>
-  <button type="submit">Login</button>
-</form>
+<app-login-form/>

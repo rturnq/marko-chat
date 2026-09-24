@@ -1,0 +1,13 @@
+export interface Input {
+  previousHref?: string;
+  nextHref?: string;
+  content: Marko.Body;
+}
+
+<if=input.previousHref>
+  <a href=input.previousHref rel="prev">Previous</a>
+</if>
+<${input.content}/>
+<if=input.nextHref>
+  <a href=input.nextHref rel="next">Next</a>
+</if>

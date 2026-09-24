@@ -1,0 +1,28 @@
+export interface Input {
+  label: string;
+  title?: string;
+  content: Marko.Body;
+}
+
+<style/styles>
+  .menu:popover-open {
+    /* Reset the browser's centered popover placement */
+    position: absolute;
+    inset: unset;
+    margin: 0;
+
+    /* Sit directly under the button, flush left */
+    position-area: bottom span-right;
+
+    /* Flip above the button when there is no room below */
+    position-try-fallbacks: flip-block;
+  }
+</style>
+
+<id/menuId>
+<button type="button" popovertarget=menuId title=input.title>
+  ${input.label}
+</button>
+<div id=menuId class=styles.menu popover>
+  <${input.content}/>
+</div>

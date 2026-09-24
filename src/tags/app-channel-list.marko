@@ -1,0 +1,21 @@
+import type { Channel } from "../server/db";
+
+export interface Input {
+  channels: Channel[] | Promise<Channel[]>;
+  activeSlug?: string;
+}
+
+<ui-await|channels| value=input.channels>
+  <ul>
+    <for|channel| of=channels by="id">
+      <li>
+        <a
+          href=Run.href("/channels/$slug", { params: { slug: channel.slug } })
+          aria-current=(channel.slug === input.activeSlug && "page")
+        >
+          ${channel.name}
+        </a>
+      </li>
+    </for>
+  </ul>
+</ui-await>

@@ -1,0 +1,34 @@
+import { UserStatus, type User } from "../server/db";
+
+static const STATUSES = [
+  { label: "Active", status: UserStatus.Active },
+  { label: "Away", status: UserStatus.Away },
+  { label: "Offline", status: UserStatus.Offline },
+];
+
+export interface Input {
+  user: User | undefined | Promise<User | undefined>;
+}
+
+<ui-popover label="Status">
+  <ui-await|user| value=input.user>
+    <if=user>
+      <form method="post" action=Run.href("/me/status")>
+        <for|{ label, status }| of=STATUSES>
+          <button
+            type="submit"
+            name="status"
+            value=String(status)
+            disabled=user.status === status
+            title=label
+          >
+            <app-status-icon status=status/>
+          </button>
+        </for>
+      </form>
+    </if>
+    <else>
+      <p>Uhh, you don't exist.</p>
+    </else>
+  </ui-await>
+</ui-popover>

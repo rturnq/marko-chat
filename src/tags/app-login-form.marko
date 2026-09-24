@@ -1,0 +1,11 @@
+// Posts to the current URL, so a `?to=` return URL survives the login.
+<form method="post">
+  <const/error=$global.session?.get("POST:/")>
+  <ui-error message=error?.message/>
+  <label>
+    <ui-error message=error?.fields?.name/>
+    <span>Name</span>
+    <input type="text" name="name" required>
+  </label>
+  <button type="submit">Login</button>
+</form>
