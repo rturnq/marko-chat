@@ -1,4 +1,5 @@
 import { UserStatus } from "../../../../server/db";
+import { withSearch } from "../../../../utils/url";
 
 static const UserStatuses = {
   Active: UserStatus.Active,
@@ -142,6 +143,7 @@ static const UserStatusIcons = {
                             params: { id: message.id },
                           })
                         >
+                          <input type="hidden" name="returnUrl" value=withSearch($global.url, { edit: undefined })>
                           <const/editError=$global.session.get(
                             "POST:/messages/$id",
                           )>
@@ -212,13 +214,19 @@ static const UserStatusIcons = {
                       </div>
                       <if=message.authorId === userId>
                         <if=message.id === editId>
-                          <button type="submit" form="edit-message-form">Save</button>
-                          <a href=$global.url.pathname>Cancel</a>
+                          <button type="submit" form="edit-message-form" name="command" value="edit">
+                            Save
+                          </button>
+                          <a href=withSearch($global.url, { edit: undefined })>Cancel</a>
                         </if>
                         <else>
-                          <form>
-                            <button type="submit" name="edit" value=message.id>
-                              Edit
+                          <a href=withSearch($global.url, { edit: message.id })>Edit</a>
+                          <form method="post" action=Run.href("/messages/$id", {
+                            params: { id: message.id },
+                          })>
+                            <input type="hidden" name="returnUrl" value=withSearch($global.url, { edit: undefined })>
+                            <button type="submit" name="command" value="delete">
+                              Delete
                             </button>
                           </form>
                         </else>
