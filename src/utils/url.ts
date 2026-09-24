@@ -16,7 +16,8 @@ export function withSearch(
   href: URL | string,
   search: Record<string, (string | undefined)>,
 ) {
-  const url = typeof href === "string" ? new URL(href, "http://marko.app") : href;
+  // Copy, so the caller's URL (often `$global.url`) is left unchanged.
+  const url = new URL(href, "http://marko.app");
   for (const key in search) {
     const value = search[key];
     if (value === undefined) {
