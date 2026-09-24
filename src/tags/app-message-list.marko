@@ -12,24 +12,26 @@ export interface Input {
 
 <const/returnUrl=withSearch(input.url, { edit: undefined })>
 
-<ui-await|page| value=input.page>
+<try>
   <@placeholder>
     <p>Loading messages...</p>
   </@placeholder>
-  <ui-pager
-    previousHref=(page.older && withSearch(input.url, { cursor: page.older, edit: undefined }))
-    nextHref=(page.newer && withSearch(input.url, { cursor: page.newer, edit: undefined }))
-  >
-    <ol class="messages">
-      <for|message| of=page.messages by="id">
-        <app-message
-          message=message
-          viewerId=input.viewerId
-          editing=message.id === input.editId
-          returnUrl=returnUrl
-          editHref=withSearch(input.url, { edit: message.id })
-        />
-      </for>
-    </ol>
-  </ui-pager>
-</ui-await>
+  <await|page|=input.page>
+    <ui-pager
+      previousHref=(page.older && withSearch(input.url, { cursor: page.older, edit: undefined }))
+      nextHref=(page.newer && withSearch(input.url, { cursor: page.newer, edit: undefined }))
+    >
+      <ol class="messages">
+        <for|message| of=page.messages by="id">
+          <app-message
+            message=message
+            viewerId=input.viewerId
+            editing=message.id === input.editId
+            returnUrl=returnUrl
+            editHref=withSearch(input.url, { edit: message.id })
+          />
+        </for>
+      </ol>
+    </ui-pager>
+  </await>
+</try>

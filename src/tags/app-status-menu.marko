@@ -11,24 +11,29 @@ export interface Input {
 }
 
 <ui-popover label="Status">
-  <ui-await|user| value=input.user>
-    <if=user>
-      <form method="post" action=Run.href("/me/status")>
-        <for|{ label, status }| of=STATUSES>
-          <button
-            type="submit"
-            name="status"
-            value=String(status)
-            disabled=user.status === status
-            title=label
-          >
-            <app-status-icon status=status/>
-          </button>
-        </for>
-      </form>
-    </if>
-    <else>
-      <p>Uhh, you don't exist.</p>
-    </else>
-  </ui-await>
+  <try>
+    <@placeholder>
+      <p>Loading...</p>
+    </@placeholder>
+    <await|user|=input.user>
+      <if=user>
+        <form method="post" action=Run.href("/me/status")>
+          <for|{ label, status }| of=STATUSES>
+            <button
+              type="submit"
+              name="status"
+              value=String(status)
+              disabled=user.status === status
+              title=label
+            >
+              <app-status-icon status=status/>
+            </button>
+          </for>
+        </form>
+      </if>
+      <else>
+        <p>Uhh, you don't exist.</p>
+      </else>
+    </await>
+  </try>
 </ui-popover>

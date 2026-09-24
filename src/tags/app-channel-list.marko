@@ -5,17 +5,22 @@ export interface Input {
   activeSlug?: string;
 }
 
-<ui-await|channels| value=input.channels>
-  <ul>
-    <for|channel| of=channels by="id">
-      <li>
-        <a
-          href=Run.href("/channels/$slug", { params: { slug: channel.slug } })
-          aria-current=(channel.slug === input.activeSlug && "page")
-        >
-          ${channel.name}
-        </a>
-      </li>
-    </for>
-  </ul>
-</ui-await>
+<try>
+  <@placeholder>
+    <p>Loading...</p>
+  </@placeholder>
+  <await|channels|=input.channels>
+    <ul>
+      <for|channel| of=channels by="id">
+        <li>
+          <a
+            href=Run.href("/channels/$slug", { params: { slug: channel.slug } })
+            aria-current=(channel.slug === input.activeSlug && "page")
+          >
+            ${channel.name}
+          </a>
+        </li>
+      </for>
+    </ul>
+  </await>
+</try>

@@ -21,28 +21,30 @@
 </nav>
 
 <section class="active">
-  <ui-await|channel| value=activeChannel>
+  <try>
     <@placeholder>
       <h1>${slug}</h1>
       <p>Loading...</p>
     </@placeholder>
-    <if=channel>
-      <h1>${channel.name}</h1>
-      <div class="scroll">
-        <app-message-list
-          page=messages
-          viewerId=userId
-          editId=editId
-          url=$global.url
-        />
-      </div>
-      <app-message-composer channelSlug=channel.slug/>
-    </if>
-    <else>
-      <h1>Whoops</h1>
-      <p>Looks like this channel doesn't exist</p>
-    </else>
-  </ui-await>
+    <await|channel|=activeChannel>
+      <if=channel>
+        <h1>${channel.name}</h1>
+        <div class="scroll">
+          <app-message-list
+            page=messages
+            viewerId=userId
+            editId=editId
+            url=$global.url
+          />
+        </div>
+        <app-message-composer channelSlug=channel.slug/>
+      </if>
+      <else>
+        <h1>Whoops</h1>
+        <p>Looks like this channel doesn't exist</p>
+      </else>
+    </await>
+  </try>
 </section>
 
 <aside class="members">
