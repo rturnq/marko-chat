@@ -5,6 +5,7 @@ export const GET = Run.GET(
   {
     search: v.object({
       edit: v.optional(v.string()),
+      cursor: v.optional(v.string()),
     }),
   },
   async (ctx, next) => {
@@ -12,7 +13,7 @@ export const GET = Run.GET(
     return next({
       channelList: ctx.db.getChannels(),
       activeChannel: ctx.db.getChannelBySlug(slug),
-      messages: ctx.db.getMessages(slug).then((page) => page.messages),
+      messages: ctx.db.getMessages(slug, ctx.search[0].cursor),
       onlineMembers: ctx.db.getOnlineMembers(),
       offlineMembers: ctx.db.getOfflineMembers(),
       editId: ctx.search[0].edit,
