@@ -369,6 +369,27 @@ export class Db {
     return toMessage(row);
   }
 
+  async deleteMessage(
+    messageId: string,
+    authorId: string,
+  ): Promise<Message> {
+    const db = await this.#connection();
+    // Its reactions are gone by the time RETURNING runs (the delete cascades
+    // to them first), so the deleted message comes back without them.
+    const row = await db.first<MessageJoinedRow>(
+      `
+      DELETE FROM messages
+      WHERE id = ? AND author_id = ?
+      RETURNING ${MESSAGE_COLUMNS}, ${MESSAGE_CHANNEL_SLUG}, ${MESSAGE_AUTHOR_NAME}
+      `,
+      messageId,
+      authorId,
+    );
+    if (!row) {
+      throw new Error(`Unable to delete message`);
+    }
+    return toMessage(row);
+  }
 
   async addReaction(
     messageId: string,

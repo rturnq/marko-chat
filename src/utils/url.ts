@@ -11,3 +11,19 @@ export function tryGetSameOriginUrl(href: URL | string | undefined, base: URL) {
   }
   return undefined;
 }
+
+export function withSearch(
+  href: URL | string,
+  search: Record<string, (string | undefined)>,
+) {
+  const url = typeof href === "string" ? new URL(href, "http://marko.app") : href;
+  for (const key in search) {
+    const value = search[key];
+    if (value === undefined) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+  }
+  return url.pathname + url.search + url.hash;
+}

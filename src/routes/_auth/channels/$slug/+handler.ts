@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import { formError } from "../../../../server/utils/validation";
+import { withSearch } from "../../../../utils/url";
 
 export const GET = Run.GET(
   {
@@ -42,10 +43,11 @@ export const POST = Run.POST(
     } else {
       try {
         await ctx.db.createMessage(channel.id, ctx.data.userId, body.text);
+        return ctx.redirect(withSearch(ctx.url, { cursor: undefined }))
       } catch (err) {
         ctx.session.flash("POST:/channels/$slug", formError(err));
       }
     }
-    return ctx.redirect(ctx.url, 303);
+    return ctx.back(ctx.url);
   },
 );
