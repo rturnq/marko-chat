@@ -14,9 +14,7 @@ let driver: Driver | undefined;
 
 /** The process's `node:sqlite` connection, opened and migrated on first use. */
 export function connectSqlite(): Driver {
-  return (driver ??= createDriver(
-    process.env.DATABASE_PATH ?? "data/chat.db",
-  ));
+  return (driver ??= createDriver(process.env.DATABASE_PATH ?? "data/chat.db"));
 }
 
 function createDriver(path: string): Driver {

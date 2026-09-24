@@ -40,7 +40,7 @@ function getIssueField(issue: StandardSchemaV1.Issue) {
       if (typeof key === "string") {
         path += sep;
         path += key;
-        sep = "."
+        sep = ".";
       }
     }
   }

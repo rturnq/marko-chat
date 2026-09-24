@@ -369,10 +369,7 @@ export class Db {
     return toMessage(row);
   }
 
-  async deleteMessage(
-    messageId: string,
-    authorId: string,
-  ): Promise<Message> {
+  async deleteMessage(messageId: string, authorId: string): Promise<Message> {
     const db = await this.#connection();
     // Its reactions are gone by the time RETURNING runs (the delete cascades
     // to them first), so the deleted message comes back without them.

@@ -8,7 +8,9 @@ interface RemixContext extends Context {
   set(key: object, value: unknown, options?: { property: string }): void;
 }
 
-export default function remixShim(...middleware: Middleware<any>[]): NormalizedHandlerFunction<"ALL", {}>[] {
+export default function remixShim(
+  ...middleware: Middleware<any>[]
+): NormalizedHandlerFunction<"ALL", {}>[] {
   return [
     (ctx: RemixContext) => {
       const map = new Map<object, unknown>();
@@ -28,6 +30,6 @@ export default function remixShim(...middleware: Middleware<any>[]): NormalizedH
         }
       };
     },
-    ...middleware as any
-  ]
+    ...(middleware as any),
+  ];
 }
