@@ -121,8 +121,16 @@ static const UserStatusIcons = {
               <p>Loading messages...</p>
             </@placeholder>
             <ol class="messages">
-              <await|messageList|=messages>
-                <for|message| of=messageList by="id">
+              <await|page|=messages>
+                <if=page.older>
+                  <a href=Run.href("/channels/$slug", {
+                    params: { slug: $global.params.slug },
+                    search: { cursor: page.older },
+                  })>
+                    Previous
+                  </a>
+                </if>
+                <for|message| of=page.messages by="id">
                   <li class="message">
                     <div>
                       <span class="message-author">${message.authorName}</span>
@@ -218,6 +226,14 @@ static const UserStatusIcons = {
                     </div>
                   </li>
                 </for>
+                <if=page.newer>
+                  <a href=Run.href("/channels/$slug", {
+                    params: { slug: $global.params.slug },
+                    search: { cursor: page.newer },
+                  })>
+                    Next
+                  </a>
+                </if>
               </await>
             </ol>
           </try>
