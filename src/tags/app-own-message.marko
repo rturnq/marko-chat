@@ -18,8 +18,10 @@ export interface Input {
 
 // The viewer is the message's author.
 <app-message message=message viewerId=message.authorId>
-  <if=input.editing>
-    <@text>
+  // Always passed, with the condition inside: an @text under an <if> is built
+  // at runtime, which makes Marko ship the edit form's renderer to the browser.
+  <@text>
+    <if=input.editing>
       <form id=editFormId method="post" action=action>
         <input type="hidden" name="returnUrl" value=input.returnUrl>
         <if=error>
@@ -39,8 +41,11 @@ export interface Input {
           />
         </label>
       </form>
-    </@text>
-  </if>
+    </if>
+    <else>
+      <span>${message.text}</span>
+    </else>
+  </@text>
   <if=input.editing>
     <button type="submit" form=editFormId name="command" value="edit">
       Save
