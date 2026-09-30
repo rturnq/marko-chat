@@ -1,4 +1,5 @@
-export const CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+export const CHARS =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 export function shortId(length = 10): string {
   const bytes = crypto.getRandomValues(new Uint8Array(length));
