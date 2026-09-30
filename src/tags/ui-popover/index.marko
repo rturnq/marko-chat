@@ -1,0 +1,56 @@
+import styles from "./style.module.css";
+
+export interface Input extends Pick<Marko.HTML.Div, "class"> {
+  id: string;
+  align?: "start" | "end";
+  heading?: Marko.AttrTag<{ content: Marko.Body }>;
+  content: Marko.Body<
+    [
+      {
+        content: Marko.Body<[], { value: string | null }>;
+      },
+      () => HTMLElement,
+    ]
+  >;
+}
+
+client let prevSource: Element | null = null;
+
+<let/value=null as string | null>
+<define/Context>
+  <return=value>
+</define>
+
+<const/classes=[
+  styles.popover,
+  input.align === "end" && styles.end,
+  input.class,
+]>
+
+<div/$el
+  id=input.id
+  class=classes
+  popover
+  onBeforeToggle(e) {
+    const { source, newState } = e as unknown as ToggleEvent;
+    prevSource?.removeAttribute("aria-expanded");
+    if (newState === "open" && source) {
+      source.setAttribute("aria-expanded", "true");
+      value = (source as HTMLElement).dataset.popovervalue || null;
+      prevSource = source;
+    } else {
+      prevSource = null;
+    }
+  }
+>
+  <div class=styles.frame>
+    <div class=styles.inner>
+      <if=input.heading>
+        <div class=styles.heading>
+          <${input.heading}/>
+        </div>
+      </if>
+      <${input.content}(Context, $el)/>
+    </div>
+  </div>
+</div>

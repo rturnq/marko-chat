@@ -1,0 +1,40 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  id: string;
+  class?: Marko.HTML.Div["class"];
+  onBeforeToggle?: Marko.HTML.Div["onBeforeToggle"];
+  /** Shown in the mint strip across the top. */
+  heading?: string;
+  /** The trigger's edge the popover lines up with: `end` opens leftwards. */
+  align?: "start" | "end";
+  /** An `anchor-name` to position against instead of the trigger. */
+  anchor?: `--${string}`;
+  /**
+   * Renders a <dialog> instead of a popover: a `command="show-modal"` button
+   * opens it, and `open` renders it open, as a form's errors can without
+   * script. Escape or a click outside closes it either way.
+   */
+  dialog?: boolean;
+  open?: boolean;
+  content: Marko.Body;
+}
+
+<const/anchorStyle=input.anchor && `position-anchor: ${input.anchor}`>
+
+<dialog
+  id=input.id
+  class=[styles.dialog, input.class]
+  style=anchorStyle
+  closedby="any"
+  open=input.open
+>
+  <div class=styles.frame>
+    <div class=styles.inner>
+      <if=input.heading>
+        <div class=styles.heading>${input.heading}</div>
+      </if>
+      <${input.content}/>
+    </div>
+  </div>
+</dialog>

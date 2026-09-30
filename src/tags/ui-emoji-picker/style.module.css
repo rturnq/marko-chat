@@ -1,0 +1,57 @@
+@layer base, ui;
+
+@layer ui {
+  .scroll {
+    height: 335px;
+  }
+
+  .heading {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 10px max(0px, 14px - var(--scrollbar-width)) 10px 14px;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 2px;
+    padding: 8px max(0px, 8px - var(--scrollbar-width)) 8px 8px;
+  }
+
+  .emoji {
+    height: 38px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-size: 22px;
+    line-height: 1;
+
+    &:hover {
+      background: var(--hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 3px var(--focus-color);
+    }
+  }
+
+  .heading2 {
+    padding: 10px 14px;
+    border-bottom: var(--line-thin) solid var(--ink);
+    background: var(--mint);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.4;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+}

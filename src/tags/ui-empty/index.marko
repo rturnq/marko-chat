@@ -1,0 +1,14 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  heading: string;
+  content?: Marko.Body;
+}
+
+// Fills the main column with a short notice, such as a missing channel.
+<div class=styles.empty>
+  <h2 class=styles.heading>${input.heading}</h2>
+  <p class=styles.body>
+    <${input.content}/>
+  </p>
+</div>

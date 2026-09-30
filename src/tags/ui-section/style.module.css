@@ -1,0 +1,71 @@
+@layer base, ui;
+
+@layer ui {
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /*
+   * Sections stacked in a column are split by a rule, centred between the
+   * rows above (whose height adds space under their text) and the heading.
+   */
+  .section + .section {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: var(--line-thin) solid var(--ink);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 32px;
+  }
+
+  .heading {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* A <details> can't reliably be a flex container, so it stacks by margin. */
+  .collapsible {
+    display: block;
+  }
+
+  /* The heading row tints edge to edge of the column on hover. */
+  .summary {
+    margin-inline: calc(-1 * var(--gutter, 0px))
+      calc(-1 * var(--gutter-end, var(--gutter, 0px)));
+    padding-inline: var(--gutter, 0px) var(--gutter-end, var(--gutter, 0px));
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      background: var(--hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 3px var(--focus-color);
+    }
+  }
+
+  /* The chevron points down while open and sideways while closed. */
+  .collapsible:not([open]) > .summary > svg {
+    rotate: -90deg;
+  }
+
+  .body {
+    margin-top: 10px;
+  }
+}

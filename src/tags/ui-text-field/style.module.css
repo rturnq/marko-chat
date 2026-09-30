@@ -1,0 +1,86 @@
+@layer base, ui;
+
+@layer ui {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * The same double border as the white buttons. Focus and error recolour the
+   * outer line; the ink ring stays.
+   */
+  .control {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    border: var(--line) solid var(--ink);
+    border-radius: 10px;
+    background: var(--white);
+    box-shadow: var(--ring);
+
+    &:focus-within {
+      border-color: var(--mint);
+    }
+
+    input {
+      flex-grow: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      padding: 0 12px;
+      background: transparent;
+      font-size: 17px;
+      font-weight: 600;
+      outline: none;
+
+      &::placeholder {
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      &:disabled {
+        color: var(--muted);
+        cursor: not-allowed;
+      }
+    }
+
+    &:has(input:disabled) {
+      border-color: var(--ink);
+      background: var(--ground);
+      box-shadow: var(--gap);
+    }
+  }
+
+  .invalid,
+  .invalid:focus-within {
+    border-color: var(--berry);
+  }
+
+  .prefix {
+    padding-left: 12px;
+    color: var(--muted);
+    font-size: 17px;
+    font-weight: 800;
+
+    & + input {
+      padding-left: 3px;
+    }
+  }
+
+  .hint {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
