@@ -7,6 +7,7 @@ export const GET = Run.GET(
     search: v.object({
       edit: v.optional(v.string()),
       cursor: v.optional(v.string()),
+      m: v.optional(v.string()),
     }),
   },
   async (ctx, next) => {
@@ -14,7 +15,11 @@ export const GET = Run.GET(
     return next({
       channelList: ctx.db.getChannels(),
       activeChannel: ctx.db.getChannelBySlug(slug),
-      messages: ctx.db.getMessages(slug, ctx.search[0].cursor),
+      // The message being edited, or the one linked to, has to be on the page.
+      messages: ctx.db.getMessages(slug, {
+        cursor: ctx.search[0].cursor,
+        focus: ctx.search[0].edit ?? ctx.search[0].m,
+      }),
       onlineMembers: ctx.db.getOnlineMembers(),
       offlineMembers: ctx.db.getOfflineMembers(),
       editId: ctx.search[0].edit,

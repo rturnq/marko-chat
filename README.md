@@ -24,6 +24,7 @@ pnpm dev
 
 ```bash
 pnpm typecheck
+pnpm test
 pnpm build
 pnpm preview
 ```
