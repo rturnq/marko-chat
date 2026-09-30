@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit && mtc",
     "format": "oxfmt",
     "lint": "oxlint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate:emoji": "node scripts/emoji/generate.mjs"
   },
   "dependencies": {
     "@remix-run/cookie": "^0.7.0",
