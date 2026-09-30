@@ -222,23 +222,34 @@ export class Db {
   async createChannel(name: string, ownerId: string): Promise<Channel> {
     const slug = name
       .toLowerCase()
-      .replace(/[^a-z0-9-]+/, "-")
-      .replace(/^-+|-+$/, "");
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    if (!slug) {
+      throw new Error("Use at least one letter or number");
+    }
     const db = await this.#connection();
     // A duplicate slug or missing owner fails a constraint, so RETURNING always
     // yields the row.
-    const channel = await db.first<ChannelRow>(
-      `
-      INSERT INTO channels (id, owner_id, slug, name, created_at)
-      VALUES (?, ?, ?, ?, ?)
-      RETURNING ${CHANNEL_COLUMNS}
-      `,
-      shortId(),
-      ownerId,
-      slug,
-      name,
-      Date.now(),
-    );
+    let channel: ChannelRow | undefined;
+    try {
+      channel = await db.first<ChannelRow>(
+        `
+        INSERT INTO channels (id, owner_id, slug, name, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING ${CHANNEL_COLUMNS}
+        `,
+        shortId(),
+        ownerId,
+        slug,
+        name,
+        Date.now(),
+      );
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("channels.slug")) {
+        throw new Error(`#${slug} already exists`, { cause: err });
+      }
+      throw err;
+    }
     return channel!;
   }
 
