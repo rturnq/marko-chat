@@ -5,10 +5,10 @@ export const POST = Run.POST(
   {
     form: v.union([
       v.object({
-        add: v.pipe(v.string(), v.length(2)),
+        add: v.pipe(v.string(), v.emoji()),
       }),
       v.object({
-        remove: v.pipe(v.string(), v.length(2)),
+        remove: v.pipe(v.string(), v.emoji()),
       }),
     ]),
   },
