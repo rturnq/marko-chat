@@ -1,5 +1,5 @@
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@marko/compiler@5.42.6'
+  - "@marko/compiler@5.42.6"
   - marko@6.3.53
