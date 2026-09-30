@@ -7,7 +7,12 @@ export const POST = Run.POST(
     form: v.variant("command", [
       v.object({
         command: v.literal("edit"),
-        text: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(2000)),
+        text: v.pipe(
+          v.string(),
+          v.trim(),
+          v.minLength(2, "Write at least 2 characters"),
+          v.maxLength(2000, "Keep it under 2000 characters"),
+        ),
         returnUrl: v.optional(v.string()),
       }),
       v.object({
@@ -21,7 +26,7 @@ export const POST = Run.POST(
     if (issues) {
       ctx.session.flash(
         "POST:/messages/$id",
-        formError("Invalid message", issues),
+        formError("Invalid message", issues, body),
       );
     } else {
       try {
@@ -44,7 +49,7 @@ export const POST = Run.POST(
             }),
         );
       } catch (err) {
-        ctx.session.flash("POST:/messages/$id", formError(err));
+        ctx.session.flash("POST:/messages/$id", formError(err, undefined, body));
       }
     }
     return ctx.back();

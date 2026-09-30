@@ -25,7 +25,12 @@ export const GET = Run.GET(
 export const POST = Run.POST(
   {
     form: v.object({
-      text: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(2000)),
+      text: v.pipe(
+        v.string(),
+        v.trim(),
+        v.minLength(2, "Write at least 2 characters"),
+        v.maxLength(2000, "Keep it under 2000 characters"),
+      ),
     }),
   },
   async (ctx) => {
@@ -38,14 +43,17 @@ export const POST = Run.POST(
     if (issues) {
       ctx.session.flash(
         "POST:/channels/$slug",
-        formError("Invalid message", issues),
+        formError("Invalid message", issues, body),
       );
     } else {
       try {
         await ctx.db.createMessage(channel.id, ctx.data.userId, body.text);
-        return ctx.redirect(href(ctx.url, { cursor: undefined }))
+        return ctx.redirect(href(ctx.url, { cursor: undefined }));
       } catch (err) {
-        ctx.session.flash("POST:/channels/$slug", formError(err));
+        ctx.session.flash(
+          "POST:/channels/$slug",
+          formError(err, undefined, body),
+        );
       }
     }
     return ctx.back(ctx.url);
