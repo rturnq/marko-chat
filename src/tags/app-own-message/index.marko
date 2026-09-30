@@ -1,0 +1,61 @@
+import type { Message } from "../../server/db";
+import styles from "./style.module.css";
+
+export interface Input {
+  message: Message;
+  editing: boolean;
+  /** The page to show once the message is edited or deleted. */
+  returnUrl: string;
+  /** This page with this message in edit mode. */
+  editHref: string;
+}
+
+<const/{ message }=input>
+<const/error=(
+  input.editing ? $global.session?.get("POST:/messages/$id") : undefined
+)>
+
+<app-message
+  message=message
+  viewerId=message.authorId
+  own=!input.editing
+  editing=input.editing
+>
+  <@text>
+    <if=input.editing>
+      <form class=styles.edit method="post" action=Run.href("/messages/$id", { params: { id: message.id } })>
+        <input type="hidden" name="returnUrl" value=input.returnUrl>
+        <ui-text-area
+          label="Message"
+          name="text"
+          placeholder="Type a message"
+          required
+          rows=3
+          autocomplete="off"
+          autofocus
+          value=error ? error.values?.text : message.text
+          error=error && (error.fields?.text ?? error.message)
+        >
+          <@actions>
+            <ui-link-button
+              href=input.returnUrl
+              icon="cancel"
+              size="medium"
+              label="Cancel"
+            />
+            <ui-button
+              type="submit"
+              name="command"
+              value="edit"
+              variant="primary"
+              icon="save"
+              size="medium"
+              label="Save"
+            />
+          </@actions>
+        </ui-text-area>
+      </form>
+    </if>
+    <else>${message.text}</else>
+  </@text>
+</app-message>

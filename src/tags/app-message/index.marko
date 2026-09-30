@@ -1,0 +1,64 @@
+import type { Message } from "../../server/db";
+import { formatTime } from "../../utils/date";
+import styles from "./style.module.css";
+
+export interface Input {
+  message: Message;
+  viewerId: string;
+  /** Shown in place of the message's text, such as an edit form. */
+  text?: Marko.AttrTag<{ content: Marko.Body }>;
+  /** More buttons for the hover toolbar, after add-reaction. */
+  own?: boolean;
+  /** Being edited: the row shows just its time and text (the edit form). */
+  editing?: boolean;
+}
+
+<const/{ message }=input>
+<const/createdAt=new Date(message.createdAt)>
+
+<li class=[styles.message, input.editing && styles.editing] id=`msg-${message.id}`>
+  <time
+    class=styles.time
+    datetime=createdAt.toISOString()
+    title=createdAt.toLocaleString("en-GB")
+  >
+    ${formatTime(message.createdAt)}
+  </time>
+  <div class=styles.text>
+    <strong class=[
+      styles.author,
+      message.authorId === input.viewerId && styles.own,
+    ]>
+      ${message.authorName}
+    </strong>
+    <if=input.text>
+      <${input.text}/>
+    </if>
+    <else>${message.text}</else>
+  </div>
+  <div class=styles.toolbar>
+    // The message list holds the one emoji picker every message shares.
+    <ui-button
+      type="button"
+      icon="add-reaction"
+      label="Add a reaction"
+      popovertarget="emoji-picker-menu"
+      popovervalue=message.id
+    />
+    <ui-button
+      type="button"
+      icon="more"
+      label="More actions"
+      popovertarget=input.own ? "own-message-menu" : "message-menu"
+      popovervalue=message.id
+    />
+  </div>
+  <if=message.reactions.length>
+    <app-message-reactions
+      class=styles.reactions
+      messageId=message.id
+      reactions=message.reactions
+      viewerId=input.viewerId
+    />
+  </if>
+</li>

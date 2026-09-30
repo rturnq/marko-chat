@@ -1,0 +1,57 @@
+.button {
+  flex-grow: 1;
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 0 12px;
+
+  /* The chevron points up while the menu is open. */
+  &:has(+ :popover-open) > svg:last-child {
+    rotate: 180deg;
+  }
+
+  > svg:last-child {
+    margin-left: auto;
+  }
+}
+
+.name {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Once the members panel collapses (ui-app-layout's 1100px breakpoint), the
+ * button shrinks to its status icon; the name stays for screen readers.
+ */
+@media (max-width: 1100px) {
+  .button {
+    flex-grow: 0;
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+
+    > svg:last-child {
+      display: none;
+    }
+  }
+
+  .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.menu {
+  width: 240px;
+}
+
+.loading {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}

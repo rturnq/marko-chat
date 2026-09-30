@@ -1,0 +1,61 @@
+.feed {
+  flex-grow: 1;
+}
+
+/* A classic scrollbar comes out of the feed's right-hand gutter. */
+.content {
+  --feed-gutter-end: calc(var(--feed-gutter, 28px) - var(--scrollbar-width));
+
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0 16px;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Day rule: THU 24 SEP between two 2px lines */
+.day {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px var(--feed-gutter-end) 6px var(--feed-gutter, 28px);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    content: "";
+    flex-grow: 1;
+    height: var(--line-thin);
+    background: var(--ink);
+  }
+}
+
+.pager {
+  align-self: center;
+  margin: 4px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+.loading {
+  padding: 0 var(--feed-gutter-end) 0 var(--feed-gutter, 28px);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.picker {
+  width: 360px;
+}

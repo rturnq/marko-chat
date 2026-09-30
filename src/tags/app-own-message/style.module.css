@@ -1,0 +1,10 @@
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  white-space: normal;
+}
+
+.menu {
+  width: 200px;
+}

@@ -1,0 +1,44 @@
+/* Rows run edge to edge of the nav, out through its padding. */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(-1 * var(--gutter-end, var(--gutter, 0px))) 0
+    calc(-1 * var(--gutter, 0px));
+  padding: 0;
+  list-style: none;
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--gutter-end, var(--gutter, 0px)) 0 var(--gutter, 0px);
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--hover);
+    color: var(--muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 3px var(--focus-color);
+  }
+
+  &:active,
+  &[aria-current="page"] {
+    color: var(--ink);
+    font-weight: 800;
+  }
+}
+
+.loading {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}

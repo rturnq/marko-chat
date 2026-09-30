@@ -1,0 +1,14 @@
+.menu {
+  width: 320px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 14px 14px;
+}
+
+.create {
+  align-self: flex-end;
+}

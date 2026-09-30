@@ -1,0 +1,5 @@
+/* Sits under the feed, whose scroller ends at the top of the field. */
+.composer {
+  flex-shrink: 0;
+  padding: 0 var(--feed-gutter, 28px) var(--feed-gutter, 28px);
+}

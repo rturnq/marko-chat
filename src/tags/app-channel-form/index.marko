@@ -1,0 +1,33 @@
+import styles from "./style.module.css";
+
+<const/error=$global.session?.get("POST:/channels")>
+<id/dialogId>
+
+<ui-button
+  type="button"
+  icon="add"
+  label="New channel"
+  commandfor=dialogId
+  command="show-modal"
+/>
+// A failed create comes back with the dialog rendered open, showing its error.
+<ui-dialog id=dialogId class=styles.menu heading="New channel" open=!!error>
+  <form class=styles.form method="post" action=Run.href("/channels")>
+    <ui-text-field
+      label="Name"
+      name="name"
+      prefix="#"
+      hint="2–50 characters"
+      error=error && (error.fields?.name ?? error.message)
+      value=error?.values?.name
+      required
+      minlength=1
+      maxlength=50
+      autocomplete="off"
+      autofocus
+    />
+    <ui-button class=styles.create type="submit" variant="primary">
+      Create
+    </ui-button>
+  </form>
+</ui-dialog>
