@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Text fields</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Bricolage Grotesque", "Avenir Next", sans-serif;
+        background: #ffffff;
+        color: #161616;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      style="
+        width: 1280px;
+        height: 480px;
+        box-sizing: border-box;
+        padding: 40px 56px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-content: start;
+        gap: 28px 40px;
+        background: #ffffff;
+        color: #161616;
+      "
+    >
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span
+          style="
+            font:
+              600 12px &quot;IBM Plex Mono&quot;,
+              monospace;
+            letter-spacing: 0.06em;
+          "
+          >IDLE</span
+        >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            height: 44px;
+            box-sizing: border-box;
+            border: 3px solid #161616;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow:
+              inset 0 0 0 2px #ffffff,
+              inset 0 0 0 4px #161616;
+          "
+        >
+          <span
+            aria-hidden="true"
+            style="
+              padding-left: 12px;
+              font:
+                800 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #4d4a44;
+            "
+            >#</span
+          >
+          <input
+            id="f-idle"
+            type="text"
+            name="name"
+            placeholder="channel-name"
+            aria-describedby="f-idle-note"
+            style="
+              flex-grow: 1;
+              min-width: 0;
+              height: 100%;
+              box-sizing: border-box;
+              border: 0;
+              padding: 0 12px 0 3px;
+              background: transparent;
+              font:
+                600 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #161616;
+              outline: none;
+            "
+          />
+        </div>
+        <span
+          id="f-idle-note"
+          style="
+            font:
+              500 13px &quot;IBM Plex Mono&quot;,
+              monospace;
+            color: #4d4a44;
+          "
+          >2–50 characters</span
+        >
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span
+          style="
+            font:
+              600 12px &quot;IBM Plex Mono&quot;,
+              monospace;
+            letter-spacing: 0.06em;
+          "
+          >FOCUS</span
+        >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            height: 44px;
+            box-sizing: border-box;
+            border: 3px solid #8fe3c0;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow:
+              inset 0 0 0 2px #ffffff,
+              inset 0 0 0 4px #161616;
+          "
+        >
+          <span
+            aria-hidden="true"
+            style="
+              padding-left: 12px;
+              font:
+                800 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #4d4a44;
+            "
+            >#</span
+          >
+          <input
+            id="f-focus"
+            type="text"
+            name="name"
+            value="design-crit"
+            aria-describedby="f-focus-note"
+            style="
+              flex-grow: 1;
+              min-width: 0;
+              height: 100%;
+              box-sizing: border-box;
+              border: 0;
+              padding: 0 12px 0 3px;
+              background: transparent;
+              font:
+                600 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #161616;
+              outline: none;
+            "
+          />
+        </div>
+        <span
+          id="f-focus-note"
+          style="
+            font:
+              500 13px &quot;IBM Plex Mono&quot;,
+              monospace;
+            color: #4d4a44;
+          "
+          >2–50 characters</span
+        >
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span
+          style="
+            font:
+              600 12px &quot;IBM Plex Mono&quot;,
+              monospace;
+            letter-spacing: 0.06em;
+          "
+          >ERROR</span
+        >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            height: 44px;
+            box-sizing: border-box;
+            border: 3px solid #9b1d55;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow:
+              inset 0 0 0 2px #ffffff,
+              inset 0 0 0 4px #161616;
+          "
+        >
+          <span
+            aria-hidden="true"
+            style="
+              padding-left: 12px;
+              font:
+                800 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #4d4a44;
+            "
+            >#</span
+          >
+          <input
+            id="f-error"
+            type="text"
+            name="name"
+            value="general"
+            aria-describedby="f-error-note"
+            style="
+              flex-grow: 1;
+              min-width: 0;
+              height: 100%;
+              box-sizing: border-box;
+              border: 0;
+              padding: 0 12px 0 3px;
+              background: transparent;
+              font:
+                600 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #161616;
+              outline: none;
+            "
+          />
+        </div>
+        <div
+          id="f-error-note"
+          role="alert"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font:
+              600 15px &quot;Bricolage Grotesque&quot;,
+              sans-serif;
+            color: #161616;
+          "
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <circle
+              cx="12"
+              cy="12"
+              r="9.5"
+              fill="#9B1D55"
+              stroke="#161616"
+              stroke-width="3"
+            ></circle>
+            <path
+              d="M12 7.5v5.5"
+              fill="none"
+              stroke="#FFFFFF"
+              stroke-width="3"
+              stroke-linecap="round"
+            ></path>
+            <circle cx="12" cy="16.8" r="1.6" fill="#FFFFFF"></circle></svg
+          >#general already exists
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span
+          style="
+            font:
+              600 12px &quot;IBM Plex Mono&quot;,
+              monospace;
+            letter-spacing: 0.06em;
+          "
+          >DISABLED</span
+        >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            height: 44px;
+            box-sizing: border-box;
+            border: 3px solid #161616;
+            border-radius: 10px;
+            background: #f1efe9;
+            box-shadow: inset 0 0 0 2px #ffffff;
+          "
+        >
+          <span
+            aria-hidden="true"
+            style="
+              padding-left: 12px;
+              font:
+                800 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #4d4a44;
+            "
+            >#</span
+          >
+          <input
+            id="f-disabled"
+            type="text"
+            name="name"
+            value="design-crit"
+            disabled
+            aria-describedby="f-disabled-note"
+            style="
+              flex-grow: 1;
+              min-width: 0;
+              height: 100%;
+              box-sizing: border-box;
+              border: 0;
+              padding: 0 12px 0 3px;
+              background: transparent;
+              font:
+                600 17px &quot;Bricolage Grotesque&quot;,
+                sans-serif;
+              color: #4d4a44;
+              outline: none;
+              cursor: not-allowed;
+            "
+          />
+        </div>
+        <span
+          id="f-disabled-note"
+          style="
+            font:
+              500 13px &quot;IBM Plex Mono&quot;,
+              monospace;
+            color: #4d4a44;
+          "
+          >2–50 characters</span
+        >
+      </div>
+      <div
+        style="
+          grid-column: 1 / -1;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding-top: 24px;
+          border-top: 2px solid #161616;
+        "
+      >
+        <span
+          style="
+            font:
+              600 12px &quot;IBM Plex Mono&quot;,
+              monospace;
+            letter-spacing: 0.06em;
+            margin-right: 12px;
+          "
+          >WITH BUTTONS</span
+        >
+        <div style="width: 300px">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              height: 44px;
+              box-sizing: border-box;
+              border: 3px solid #161616;
+              border-radius: 10px;
+              background: #ffffff;
+              box-shadow:
+                inset 0 0 0 2px #ffffff,
+                inset 0 0 0 4px #161616;
+            "
+          >
+            <span
+              aria-hidden="true"
+              style="
+                padding-left: 12px;
+                font:
+                  800 17px &quot;Bricolage Grotesque&quot;,
+                  sans-serif;
+                color: #4d4a44;
+              "
+              >#</span
+            >
+            <input
+              id="f-row"
+              type="text"
+              name="name"
+              placeholder="channel-name"
+              aria-describedby="f-row-note"
+              style="
+                flex-grow: 1;
+                min-width: 0;
+                height: 100%;
+                box-sizing: border-box;
+                border: 0;
+                padding: 0 12px 0 3px;
+                background: transparent;
+                font:
+                  600 17px &quot;Bricolage Grotesque&quot;,
+                  sans-serif;
+                color: #161616;
+                outline: none;
+              "
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          style="
+            height: 44px;
+            padding: 0 16px;
+            border: 3px solid #161616;
+            border-radius: 10px;
+            font:
+              700 16px &quot;Bricolage Grotesque&quot;,
+              sans-serif;
+            cursor: pointer;
+            background: #9b1d55;
+            box-shadow: inset 0 0 0 2px #ffffff;
+            color: #ffffff;
+          "
+        >
+          Create
+        </button>
+        <button
+          type="button"
+          style="
+            height: 44px;
+            padding: 0 16px;
+            border: 3px solid #161616;
+            border-radius: 10px;
+            font:
+              700 16px &quot;Bricolage Grotesque&quot;,
+              sans-serif;
+            cursor: pointer;
+            background: #ffffff;
+            box-shadow:
+              inset 0 0 0 2px #ffffff,
+              inset 0 0 0 4px #161616;
+            color: #161616;
+          "
+        >
+          Button
+        </button>
+      </div>
+      <div
+        style="
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 40px;
+          padding-top: 24px;
+          border-top: 2px solid #161616;
+        "
+      >
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span
+            style="
+              font:
+                600 12px &quot;IBM Plex Mono&quot;,
+                monospace;
+              letter-spacing: 0.06em;
+            "
+            >TEXTAREA · IDLE</span
+          >
+          <form
+            style="
+              position: relative;
+              display: flex;
+              box-sizing: border-box;
+              border: 3px solid #161616;
+              border-radius: 10px;
+              background: #ffffff;
+              box-shadow:
+                inset 0 0 0 2px #ffffff,
+                inset 0 0 0 4px #161616;
+            "
+          >
+            <label style="flex-grow: 1; display: flex"
+              ><span
+                style="
+                  position: absolute;
+                  width: 1px;
+                  height: 1px;
+                  overflow: hidden;
+                  clip: rect(0 0 0 0);
+                "
+                >Message</span
+              >
+              <textarea
+                name="text"
+                rows="2"
+                placeholder="Message #general"
+                style="
+                  flex-grow: 1;
+                  resize: none;
+                  border: 0;
+                  padding: 14px 60px 14px 16px;
+                  background: transparent;
+                  font:
+                    400 17px &quot;Bricolage Grotesque&quot;,
+                    sans-serif;
+                  color: #161616;
+                  outline: none;
+                "
+              ></textarea>
+            </label>
+            <button
+              type="button"
+              aria-label="Send"
+              style="
+                position: absolute;
+                right: 8px;
+                bottom: 8px;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: 2px solid #161616;
+                border-radius: 8px;
+                background: #9b1d55;
+                box-shadow: inset 0 0 0 2px #ffffff;
+                color: #ffffff;
+                cursor: pointer;
+              "
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 3 3 10.5l7.5 3L21 3z"></path>
+                <path d="M21 3l-7.5 18-3-7.5"></path>
+              </svg>
+            </button>
+          </form>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span
+            style="
+              font:
+                600 12px &quot;IBM Plex Mono&quot;,
+                monospace;
+              letter-spacing: 0.06em;
+            "
+            >TEXTAREA · FOCUS</span
+          >
+          <form
+            style="
+              position: relative;
+              display: flex;
+              box-sizing: border-box;
+              border: 3px solid #8fe3c0;
+              border-radius: 10px;
+              background: #ffffff;
+              box-shadow:
+                inset 0 0 0 2px #ffffff,
+                inset 0 0 0 4px #161616;
+            "
+          >
+            <label style="flex-grow: 1; display: flex"
+              ><span
+                style="
+                  position: absolute;
+                  width: 1px;
+                  height: 1px;
+                  overflow: hidden;
+                  clip: rect(0 0 0 0);
+                "
+                >Message</span
+              >
+              <textarea
+                name="text"
+                rows="2"
+                placeholder="Message #general"
+                style="
+                  flex-grow: 1;
+                  resize: none;
+                  border: 0;
+                  padding: 14px 60px 14px 16px;
+                  background: transparent;
+                  font:
+                    400 17px &quot;Bricolage Grotesque&quot;,
+                    sans-serif;
+                  color: #161616;
+                  outline: none;
+                "
+              ></textarea>
+            </label>
+            <button
+              type="button"
+              aria-label="Send"
+              style="
+                position: absolute;
+                right: 8px;
+                bottom: 8px;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: 2px solid #161616;
+                border-radius: 8px;
+                background: #9b1d55;
+                box-shadow: inset 0 0 0 2px #ffffff;
+                color: #ffffff;
+                cursor: pointer;
+              "
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 3 3 10.5l7.5 3L21 3z"></path>
+                <path d="M21 3l-7.5 18-3-7.5"></path>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
