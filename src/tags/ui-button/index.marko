@@ -1,0 +1,33 @@
+import type { IconName } from "../ui-icon/index.marko";
+import styles from "./style.module.css";
+
+export interface Input extends Marko.HTML.Button {
+  variant?: "default" | "primary";
+  icon?: IconName;
+  label?: string;
+  size?: "small" | "medium" | "large";
+  popovervalue?: string;
+}
+
+<const/{ variant, icon, label, size, popovervalue, ...rest }=input>
+<const/classes=[
+  styles.button,
+  variant === "primary" && styles.primary,
+  icon ? [styles.icon, styles[size ?? "small"]] : styles.text,
+  input.class,
+]>
+
+<button
+  ...rest  
+  data-popovervalue=popovervalue
+  class=classes
+  aria-label=label
+  title=label
+>
+  <if=icon>
+    <ui-icon name=icon/>
+  </if>
+  <else>
+    <${input.content}/>
+  </else>
+</button>

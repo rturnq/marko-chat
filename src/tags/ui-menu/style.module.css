@@ -1,0 +1,13 @@
+@layer base, ui;
+
+@layer ui {
+  .menu {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+  }
+
+  .menu + .menu {
+    border-top: var(--line-thin) solid var(--ink);
+  }
+}

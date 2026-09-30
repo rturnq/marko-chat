@@ -15,7 +15,7 @@ export const POST = Run.POST(
   async (ctx) => {
     const [body, issues] = await ctx.body;
     if (issues) {
-      ctx.session.flash("POST:/me/status", formError("Invalid status", issues));
+      ctx.session.flash("POST:/me", formError("Invalid status", issues));
     } else {
       await ctx.db.updateUserStatus(ctx.data.userId, body.status);
     }

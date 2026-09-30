@@ -1,0 +1,15 @@
+.icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.active,
+.away {
+  fill: var(--mint);
+  stroke: var(--ink);
+}
+
+.offline {
+  fill: none;
+  stroke: var(--muted);
+}

@@ -1,0 +1,61 @@
+import styles from "./styles.module.css";
+import { href } from "../../utils/url";
+
+export interface Input {
+  id: string;
+  slug: string;
+  url: URL;
+  own?: true;
+}
+
+<ui-popover|Context, $popover| id=input.id class=styles.menu align="end">
+  <Context/messageId/>
+  <form
+    method="post"
+    action=messageId && Run.href("/messages/$id", { params: { id: messageId } })
+  >
+    <ui-menu>
+      <ui-menu-link
+        icon="link"
+        href=(
+          messageId &&
+          Run.href("/channels/$slug", {
+            params: { slug: input.slug },
+            search: { m: messageId },
+            hash: `msg-${messageId}`,
+          })
+        )
+        onClick(e, target) {
+          e.preventDefault();
+          navigator.clipboard.writeText(target.href);
+          $popover().hidePopover();
+        }
+      >
+        Copy Link
+      </ui-menu-link>
+    </ui-menu>
+    <if=input.own>
+      <ui-menu>
+        <input
+          type="hidden"
+          name="returnUrl"
+          value=href(input.url, { edit: undefined })
+        >
+        <ui-menu-link
+          href=messageId && href(input.url, { edit: messageId })
+          icon="edit"
+        >
+          Edit
+        </ui-menu-link>
+        <ui-menu-button
+          type="submit"
+          name="command"
+          value="delete"
+          icon="delete"
+        >
+          Delete
+        </ui-menu-button>
+      </ui-menu>
+    </if>
+  </form>
+</ui-popover>

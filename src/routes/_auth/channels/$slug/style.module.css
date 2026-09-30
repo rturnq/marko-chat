@@ -1,0 +1,287 @@
+@layer base, ui;
+
+/*
+ * Breakpoints: below 1100px the aside becomes a drawer, below 760px the nav
+ * does too, and below 480px the feed's gutter narrows for phones.
+ */
+@layer ui {
+  .app {
+    --header-height: 88px;
+    --nav-width: 220px;
+    --aside-width: 240px;
+    --drawer-width: min(280px, 85vw);
+
+    /* The feed's side gutter, which the header title lines up with */
+    --feed-gutter: 28px;
+
+    display: grid;
+    grid-template:
+      "header header header" var(--header-height)
+      "nav main aside" minmax(0, 1fr)
+      / var(--nav-width) minmax(0, 1fr) var(--aside-width);
+    height: 100dvh;
+  }
+
+  .header {
+    grid-area: header;
+    display: grid;
+    grid-template-columns: var(--nav-width) minmax(0, 1fr) var(--aside-width);
+    border-bottom: var(--line) solid var(--ink);
+    background: var(--mint);
+
+    /* A mint focus ring would vanish against the header. */
+    --focus-color: var(--ink);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    border-right: var(--line) solid var(--ink);
+  }
+
+  .title {
+    align-self: center;
+    padding: 0 var(--feed-gutter);
+    overflow: hidden;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    border-left: var(--line) solid var(--ink);
+  }
+
+  /* Shown only once their panel has become a drawer */
+  .brand .navToggle,
+  .account .asideToggle {
+    display: none;
+  }
+
+  /* Open while their drawer shows */
+  .app:has(.nav:popover-open) .navToggle,
+  .app:has(.aside:popover-open) .asideToggle {
+    background-color: var(--mint);
+    box-shadow: var(--gap);
+  }
+
+  .main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--white);
+  }
+
+  /*
+   * The nav and aside are popovers, but stay ordinary columns while there's
+   * room: these override the browser's popover styles, which hide a closed
+   * popover and centre an open one.
+   */
+  .nav,
+  .aside {
+    /* Rows that run edge to edge reach out through the --gutter. */
+    --gutter: 20px;
+
+    position: static;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: visible;
+    background: var(--ground);
+    color: var(--ink);
+  }
+
+  .scroll {
+    flex-grow: 1;
+  }
+
+  /*
+   * A classic scrollbar comes out of the right-hand gutter, not the content:
+   * --gutter-end is what's left of it, for rows that run edge to edge.
+   */
+  .panel {
+    --gutter-end: calc(var(--gutter) - var(--scrollbar-width));
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px var(--gutter-end) 28px var(--gutter);
+  }
+
+  .nav {
+    grid-area: nav;
+    border-right: var(--line) solid var(--ink);
+  }
+
+  .aside {
+    grid-area: aside;
+    border-left: var(--line) solid var(--ink);
+  }
+
+  /*
+   * A drawer left open as the window widens stays in the top layer, out of
+   * its grid column, until dismissed. Wherever it's a column again, pin it
+   * exactly over that column, so nothing moves.
+   */
+  @media (width > 760px) {
+    .nav:popover-open {
+      position: fixed;
+      inset: var(--header-height) auto 0 0;
+      width: var(--nav-width);
+    }
+  }
+
+  @media (width > 1100px) {
+    .aside:popover-open {
+      position: fixed;
+      inset: var(--header-height) 0 0 auto;
+      width: var(--aside-width);
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .app {
+      grid-template:
+        "header header" var(--header-height)
+        "nav main" minmax(0, 1fr)
+        / var(--nav-width) minmax(0, 1fr);
+    }
+
+    .header {
+      grid-template-columns: var(--nav-width) minmax(0, 1fr) auto;
+    }
+
+    /* No column below it any more */
+    .account {
+      border-left: 0;
+    }
+
+    .account .asideToggle {
+      display: inline-flex;
+    }
+
+    /* A full-height drawer over the page */
+    .aside {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: var(--drawer-width);
+
+      &:not(:popover-open) {
+        display: none;
+      }
+    }
+  }
+
+  @media (max-width: 760px) {
+    .app {
+      --header-height: 68px;
+
+      grid-template:
+        "header" var(--header-height)
+        "main" minmax(0, 1fr)
+        / minmax(0, 1fr);
+    }
+
+    /*
+     * [#] … [mark #general] … [status][people]: the brand cell dissolves so
+     * its toggle and mark can be placed apart. The equal outer columns
+     * centre the mark and title together on the screen; the title never
+     * grows past the wider side's room.
+     */
+    .header {
+      /* The wider side: two 44px buttons, a 10px gap and the 16px edge */
+      --header-side: 114px;
+
+      grid-template-areas: "toggle mark title account";
+      grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 10px;
+    }
+
+    /* Just the mark, and no column below it any more */
+    .brand {
+      --logo-wordmark: none;
+
+      display: contents;
+    }
+
+    .brand .navToggle {
+      grid-area: toggle;
+      display: inline-flex;
+      justify-self: start;
+      margin-left: 16px;
+    }
+
+    .logo {
+      grid-area: mark;
+      display: flex;
+    }
+
+    .title {
+      grid-area: title;
+      max-width: calc(100vw - 2 * (var(--header-side) + 10px) - 40px);
+      padding: 0;
+      font-size: 28px;
+    }
+
+    .account {
+      grid-area: account;
+      justify-content: flex-end;
+      padding: 0 16px 0 0;
+    }
+
+    .nav {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--drawer-width);
+
+      &:not(:popover-open, :has(:popover-open, dialog[open])) {
+        display: none;
+      }
+
+      /*
+       * Also shown, outside the top layer, while a popover or dialog inside
+       * it is open: a failed new channel comes back with its dialog open.
+       */
+      &:has(:popover-open, dialog[open]):not(:popover-open) {
+        z-index: 1;
+      }
+
+      &::backdrop {
+        background: var(--halftone);
+        mask-image: linear-gradient(
+          to right,
+          transparent var(--drawer-width),
+          #000 var(--drawer-width) calc(var(--drawer-width) + 8px),
+          transparent calc(var(--drawer-width) + 8px)
+        );
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .app {
+      --feed-gutter: 16px;
+    }
+
+    .title {
+      font-size: 24px;
+    }
+  }
+}

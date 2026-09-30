@@ -1,0 +1,71 @@
+@layer base, ui;
+
+@layer ui {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /*
+   * The text field's double border: focus and error recolour the outer line.
+   * The text runs its full width, with any buttons in a row beneath it.
+   */
+  .control {
+    display: flex;
+    flex-direction: column;
+    border: var(--line) solid var(--ink);
+    border-radius: 10px;
+    background: var(--white);
+    box-shadow: var(--ring);
+
+    &:focus-within {
+      border-color: var(--mint);
+    }
+
+    /* Inset past the ring, so the scrollbar sits inside the double border */
+    textarea {
+      flex-grow: 1;
+      min-width: 0;
+      margin: 4px;
+      border: 0;
+      padding: 10px 12px;
+      background: transparent;
+      font-size: 17px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+
+      /* Grows with its text, from `rows` lines to 40% of the screen, past
+         which it scrolls. Without field-sizing, `rows` sets the height. */
+      field-sizing: content;
+      min-height: calc(var(--rows) * 1lh + 20px);
+      max-height: 40vh;
+
+      &::placeholder {
+        color: var(--muted);
+      }
+    }
+  }
+
+  .invalid,
+  .invalid:focus-within {
+    border-color: var(--berry);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 8px;
+    margin-top: -12px;
+  }
+
+  /* At the left, in line with the text; the buttons keep to the right. */
+  .error {
+    min-width: 0;
+    margin-right: auto;
+    margin-left: 8px;
+  }
+}

@@ -1,0 +1,33 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.loading {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}

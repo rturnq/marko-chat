@@ -1,0 +1,94 @@
+import type { MessagePage } from "../../server/db";
+import { formatDay, isoDay } from "../../utils/date";
+import { href } from "../../utils/url";
+import styles from "./style.module.css";
+
+export interface Input {
+  slug: string;
+  page: MessagePage | Promise<MessagePage>;
+  viewerId: string;
+  /** The message being edited, if any. */
+  editId?: string;
+  /** The current page's URL; links keep its other search parameters. */
+  url: URL;
+}
+
+<const/returnUrl=href(input.url, { edit: undefined })>
+
+// Reversed, so the feed starts scrolled to its newest message.
+<ui-scroll-area class=styles.feed contentClass=styles.content reverse>
+  <try>
+    <@placeholder>
+      <p class=styles.loading>Loading messages...</p>
+    </@placeholder>
+    <await|page|=input.page>
+      <if=page.older>
+        <a
+          class=styles.pager
+          href=href(input.url, {
+            cursor: page.older,
+            edit: undefined,
+            m: undefined,
+          })
+          rel="prev"
+        >
+          ↑ older messages
+        </a>
+      </if>
+      <ol class=styles.messages>
+        <for|message, i| of=page.messages by="id">
+          <const/day=isoDay(message.createdAt)>
+          <if=i === 0 || isoDay(page.messages[i - 1].createdAt) !== day>
+            <li class=styles.day>
+              <time datetime=day>${formatDay(message.createdAt)}</time>
+            </li>
+          </if>
+          <if=message.authorId === input.viewerId>
+            <app-own-message
+              message=message
+              editing=message.id === input.editId
+              returnUrl=returnUrl
+              editHref=href(input.url, { edit: message.id })
+            />
+          </if>
+          <else>
+            <app-message message=message viewerId=input.viewerId/>
+          </else>
+        </for>
+      </ol>
+      <if=page.newer>
+        <a
+          class=styles.pager
+          href=href(input.url, {
+            cursor: page.newer,
+            edit: undefined,
+            m: undefined,
+          })
+          rel="next"
+        >
+          ↓ newer messages
+        </a>
+      </if>
+    </await>
+  </try>
+</ui-scroll-area>
+
+<ui-popover|Context| id="emoji-picker-menu" class=styles.picker align="end">
+  <Context/messageId/>
+  <form
+    method="post"
+    action=(
+      messageId &&
+      Run.href("/messages/$id/reaction", {
+        params: { id: messageId },
+      })
+    )
+  >
+    <ui-emoji-picker/>
+  </form>
+</ui-popover>
+
+<app-message-menu id="message-menu" url=input.url slug=input.slug/>
+
+<app-message-menu id="own-message-menu" url=input.url slug=input.slug own/>
+

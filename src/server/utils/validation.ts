@@ -3,11 +3,14 @@ import type { StandardSchemaV1 } from "@standard-schema/spec";
 export interface FormError {
   message: string;
   fields: Record<string, string> | undefined;
+  /** What was submitted, to fill the form back in. */
+  values?: Record<string, string>;
 }
 
 export function formError(
   error: Error | string | unknown,
   issues?: readonly StandardSchemaV1.Issue[],
+  values?: Record<string, string>,
 ): FormError {
   return {
     message:
@@ -17,6 +20,7 @@ export function formError(
           ? error.message
           : "Unknown error",
     fields: issues ? flattenIssues(issues) : undefined,
+    values,
   };
 }
 
@@ -40,7 +44,7 @@ function getIssueField(issue: StandardSchemaV1.Issue) {
       if (typeof key === "string") {
         path += sep;
         path += key;
-        sep = "."
+        sep = ".";
       }
     }
   }

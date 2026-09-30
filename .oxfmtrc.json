@@ -1,7 +1,12 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "printWidth": 120,
-  "singleQuote": true,
-  "arrowParens": "avoid",
-  "ignorePatterns": [".marko-run", "dist"]
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    ".marko-run",
+    "dist",
+    "src/tags/ui-emoji-picker/emoji-data.json"
+  ]
 }

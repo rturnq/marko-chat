@@ -1,0 +1,51 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  /** Names the field for screen readers. */
+  label: string;
+  error?: string;
+  /** Buttons in a row under the text, inside the field, such as Send. */
+  actions?: Marko.AttrTag<{ content: Marko.Body }>;
+  id?: string;
+  name?: string;
+  value?: string;
+  placeholder?: string;
+  required?: boolean;
+  rows?: number;
+  maxlength?: number;
+  autocomplete?: Marko.HTML.TextArea["autocomplete"];
+  autofocus?: boolean;
+  class?: Marko.HTML.Div["class"];
+}
+
+<id/id=input.id>
+<const/descId=`${id}_desc`>
+
+<div class=[styles.field, input.class]>
+  <div class=[styles.control, input.error && styles.invalid]>
+    <label class="visually-hidden" for=id>${input.label}</label>
+    <textarea
+      id=id
+      style=`--rows: ${input.rows ?? 2}`
+      name=input.name
+      value=input.value
+      placeholder=input.placeholder
+      required=input.required
+      rows=input.rows
+      maxlength=input.maxlength
+      autocomplete=input.autocomplete
+      autofocus=input.autofocus
+      aria-describedby=input.error && descId
+      aria-invalid=input.error ? "true" : undefined
+    />
+    // The error sits at the left of the bottom row, any buttons at the right.
+    <if=input.actions || input.error>
+      <div class=styles.actions>
+        <if=input.error>
+          <ui-alert id=descId class=styles.error>${input.error}</ui-alert>
+        </if>
+        <${input.actions}/>
+      </div>
+    </if>
+  </div>
+</div>

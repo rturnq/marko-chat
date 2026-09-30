@@ -1,0 +1,16 @@
+@layer base, ui;
+
+@layer ui {
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+
+    svg {
+      margin-block: 2px;
+    }
+  }
+}

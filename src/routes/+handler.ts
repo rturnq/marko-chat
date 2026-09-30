@@ -27,7 +27,12 @@ export const POST = Run.POST(
       to: v.optional(v.string()),
     }),
     form: v.object({
-      name: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(100)),
+      name: v.pipe(
+        v.string(),
+        v.trim(),
+        v.minLength(2, "Use 2–100 characters"),
+        v.maxLength(100, "Use 2–100 characters"),
+      ),
     }),
   },
   async (ctx) => {
@@ -36,7 +41,10 @@ export const POST = Run.POST(
 
     const [body, issues] = await ctx.body;
     if (issues) {
-      ctx.session.flash("POST:/", formError("Invalid login", issues));
+      ctx.session.flash(
+        "POST:/",
+        formError("Invalid login", issues, { name: body.name }),
+      );
       return ctx.redirect(ctx.url);
     }
 
@@ -45,7 +53,10 @@ export const POST = Run.POST(
       try {
         user = await ctx.db.createUser(body.name);
       } catch (err) {
-        ctx.session.flash("POST:/", formError(err));
+        ctx.session.flash(
+          "POST:/",
+          formError(err, undefined, { name: body.name }),
+        );
         return ctx.redirect(ctx.url);
       }
     }

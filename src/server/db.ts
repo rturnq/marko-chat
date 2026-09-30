@@ -53,6 +53,12 @@ export interface Reaction {
   }[];
 }
 
+/** A row of a page query: which part of the query it came from, and flags. */
+interface PageRow extends MessageJoinedRow {
+  part: "page" | "after" | "before";
+  otherSide: number;
+}
+
 export interface MessagePage {
   messages: Message[];
   older: string | undefined;
@@ -73,6 +79,10 @@ const USER_COLUMNS = "id, name, display_name AS displayName, status";
 const CHANNEL_COLUMNS = "id, owner_id AS ownerId, slug, name";
 const MESSAGE_COLUMNS =
   "id, channel_id AS channelId, author_id AS authorId, text, created_at AS createdAt, edited_at AS editedAt";
+
+// A message's own columns, unaliased, for the CTEs of a page query to pass on.
+const PAGE_COLUMNS =
+  "m.id, m.channel_id, m.author_id, m.text, m.created_at, m.edited_at";
 
 // These complete a message row, which they refer to as `messages`: the table
 // itself in a RETURNING clause (where aliases are not visible), or an alias.
@@ -222,30 +232,53 @@ export class Db {
   async createChannel(name: string, ownerId: string): Promise<Channel> {
     const slug = name
       .toLowerCase()
-      .replace(/[^a-z0-9-]+/, "-")
-      .replace(/^-+|-+$/, "");
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    if (!slug) {
+      throw new Error("Use at least one letter or number");
+    }
     const db = await this.#connection();
     // A duplicate slug or missing owner fails a constraint, so RETURNING always
     // yields the row.
-    const channel = await db.first<ChannelRow>(
-      `
-      INSERT INTO channels (id, owner_id, slug, name, created_at)
-      VALUES (?, ?, ?, ?, ?)
-      RETURNING ${CHANNEL_COLUMNS}
-      `,
-      shortId(),
-      ownerId,
-      slug,
-      name,
-      Date.now(),
-    );
+    let channel: ChannelRow | undefined;
+    try {
+      channel = await db.first<ChannelRow>(
+        `
+        INSERT INTO channels (id, owner_id, slug, name, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING ${CHANNEL_COLUMNS}
+        `,
+        shortId(),
+        ownerId,
+        slug,
+        name,
+        Date.now(),
+      );
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("channels.slug")) {
+        throw new Error(`#${slug} already exists`, { cause: err });
+      }
+      throw err;
+    }
     return channel!;
   }
 
+  /**
+   * A page of a channel's messages, oldest first: the latest, or the page a
+   * cursor points to. With a `focus` message id, the page is sure to hold that
+   * message: the cursor's page if it's on it, and otherwise a page that starts
+   * at the focus, with up to `limit - 1` newer messages and enough older ones
+   * to fill it. A focus that's gone (or in another channel) is ignored.
+   *
+   * One statement does it all, reading at most one row past each end.
+   */
   async getMessages(
     channelSlug: string,
-    cursor?: string,
-    limit: number = 25,
+    {
+      cursor,
+      focus,
+      limit = 25,
+    }: { cursor?: string; focus?: string; limit?: number } = {},
   ): Promise<MessagePage> {
     limit = Math.max(limit, 1);
     // A cursor that does not parse is ignored, and without one this is the
@@ -255,70 +288,129 @@ export class Db {
     const order = ascending ? "ASC" : "DESC";
 
     const db = await this.#connection();
-    const params = [channelSlug, limit + 1];
-    if (position) {
-      params.push(position.createdAt, position.id);
-    }
-    const [rows, otherSide] = await Promise.all([
-      db.all<MessageJoinedRow>(
-        `
-        WITH page AS (
-          SELECT m.id, m.channel_id, m.author_id, m.text, m.created_at, m.edited_at
-          FROM channels c
-          JOIN messages m ON m.channel_id = c.id
-          WHERE c.slug = ?1${
+    const rows = await db.all<PageRow>(
+      `
+      WITH
+        ch AS (SELECT id FROM channels WHERE slug = ?1),
+        focus AS (
+          SELECT m.created_at, m.id
+          FROM messages m, ch
+          WHERE m.id = ?3 AND m.channel_id = ch.id
+        ),
+        -- The cursor's page (or the latest): one row more than a page, in its
+        -- direction, to tell whether there's more.
+        paged AS (
+          SELECT ${PAGE_COLUMNS}
+          FROM messages m, ch
+          WHERE m.channel_id = ch.id${
             position
               ? `
-          AND (m.created_at, m.id) ${ascending ? ">" : "<"} (?3, ?4)`
+            AND (m.created_at, m.id) ${ascending ? ">" : "<"} (?4, ?5)`
               : ``
           }
           ORDER BY m.created_at ${order}, m.id ${order}
-          LIMIT ?2
-        )
-        -- Every message on the page is in the requested channel.
-        SELECT ${MESSAGE_COLUMNS}, ?1 AS channelSlug, ${MESSAGE_AUTHOR_NAME}, ${MESSAGE_REACTIONS}
-        FROM page AS messages
-        ORDER BY created_at, id
-        `,
-        ...params,
-      ),
-      // The page came from the cursor's side, but those messages may have been
-      // deleted since, so check that some remain.
-      position &&
-        db.first<{ found: number }>(
-          `
-          SELECT EXISTS (
-            SELECT 1
-            FROM channels c
-            JOIN messages m ON m.channel_id = c.id
-            WHERE c.slug = ?1 AND (m.created_at, m.id) ${ascending ? "<=" : ">="} (?2, ?3)
-          ) AS found
-          `,
-          channelSlug,
-          position.createdAt,
-          position.id,
+          LIMIT ?2 + 1
         ),
-    ]);
+        -- Set when there is a focus that the page doesn't show.
+        jump AS (
+          SELECT 1
+          FROM focus
+          WHERE focus.id NOT IN (
+            SELECT id FROM paged ORDER BY created_at ${order}, id ${order} LIMIT ?2
+          )
+        ),
+        -- In its place: the focus and newer messages, one more than a page...
+        after AS (
+          SELECT ${PAGE_COLUMNS}
+          FROM messages m, ch, focus
+          WHERE EXISTS (SELECT 1 FROM jump)
+            AND m.channel_id = ch.id
+            AND (m.created_at, m.id) >= (focus.created_at, focus.id)
+          ORDER BY m.created_at, m.id
+          LIMIT ?2 + 1
+        ),
+        -- ...and older ones to fill the rest of the page, plus one.
+        before AS (
+          SELECT ${PAGE_COLUMNS}
+          FROM messages m, ch, focus
+          WHERE EXISTS (SELECT 1 FROM jump)
+            AND m.channel_id = ch.id
+            AND (m.created_at, m.id) < (focus.created_at, focus.id)
+          ORDER BY m.created_at DESC, m.id DESC
+          LIMIT max(0, ?2 - (SELECT count(*) FROM after)) + 1
+        )
+      -- Every message on the page is in the requested channel.
+      SELECT
+        part,
+        ${MESSAGE_COLUMNS},
+        ?1 AS channelSlug,
+        ${MESSAGE_AUTHOR_NAME},
+        ${MESSAGE_REACTIONS},
+        -- A cursor's page came from one side of it, but the messages on the
+        -- other side may have been deleted since, so check that some remain.
+        ${
+          position
+            ? `EXISTS (
+          SELECT 1
+          FROM messages m, ch
+          WHERE m.channel_id = ch.id
+            AND (m.created_at, m.id) ${ascending ? "<=" : ">="} (?4, ?5)
+        )`
+            : `0`
+        } AS otherSide
+      FROM (
+        SELECT 'page' AS part, * FROM paged WHERE NOT EXISTS (SELECT 1 FROM jump)
+        UNION ALL
+        SELECT 'after', * FROM after
+        UNION ALL
+        SELECT 'before', * FROM before
+      ) AS messages
+      ORDER BY created_at, id
+      `,
+      channelSlug,
+      limit,
+      focus ?? null,
+      // ?4 and ?5 appear only in a cursor's statement.
+      ...(position ? [position.createdAt, position.id] : []),
+    );
 
-    // The extra row is the one furthest in the paging direction.
-    const hasMore = rows.length > limit;
-    if (hasMore) {
-      if (ascending) {
-        rows.pop();
-      } else {
-        rows.shift();
+    let messages: PageRow[];
+    let hasOlder: boolean;
+    let hasNewer: boolean;
+    if (rows.some((row) => row.part !== "page")) {
+      // The page around the focus, each side trimmed of its extra row.
+      const after = rows.filter((row) => row.part === "after");
+      const before = rows.filter((row) => row.part === "before");
+      const fill = Math.max(0, limit - after.length);
+      hasNewer = after.length > limit;
+      if (hasNewer) after.pop();
+      hasOlder = before.length > fill;
+      if (hasOlder) before.shift();
+      messages = [...before, ...after];
+    } else {
+      // The extra row is the one furthest in the paging direction.
+      messages = rows;
+      const hasMore = rows.length > limit;
+      if (hasMore) {
+        if (ascending) {
+          rows.pop();
+        } else {
+          rows.shift();
+        }
       }
+      const hasOtherSide = !!rows[0]?.otherSide;
+      hasOlder = ascending ? hasOtherSide : hasMore;
+      hasNewer = ascending ? hasMore : hasOtherSide;
     }
-    rows.forEach(toMessage);
-    const hasOtherSide = !!otherSide?.found && rows.length > 0;
+
+    const page = messages.map(
+      // Drop the query's bookkeeping columns.
+      ({ part: _part, otherSide: _otherSide, ...row }) => toMessage(row),
+    );
     return {
-      messages: rows as unknown as Message[],
-      older: (ascending ? hasOtherSide : hasMore)
-        ? toCursor("b", rows[0])
-        : undefined,
-      newer: (ascending ? hasMore : hasOtherSide)
-        ? toCursor("a", rows.at(-1)!)
-        : undefined,
+      messages: page,
+      older: hasOlder && page.length ? toCursor("b", page[0]) : undefined,
+      newer: hasNewer && page.length ? toCursor("a", page.at(-1)!) : undefined,
     };
   }
 
@@ -369,10 +461,7 @@ export class Db {
     return toMessage(row);
   }
 
-  async deleteMessage(
-    messageId: string,
-    authorId: string,
-  ): Promise<Message> {
+  async deleteMessage(messageId: string, authorId: string): Promise<Message> {
     const db = await this.#connection();
     // Its reactions are gone by the time RETURNING runs (the delete cascades
     // to them first), so the deleted message comes back without them.

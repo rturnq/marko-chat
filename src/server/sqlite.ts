@@ -14,12 +14,11 @@ let driver: Driver | undefined;
 
 /** The process's `node:sqlite` connection, opened and migrated on first use. */
 export function connectSqlite(): Driver {
-  return (driver ??= createDriver(
-    process.env.DATABASE_PATH ?? "data/chat.db",
-  ));
+  return (driver ??= createDriver(process.env.DATABASE_PATH ?? "data/chat.db"));
 }
 
-function createDriver(path: string): Driver {
+/** A new, migrated connection to `path`, such as `:memory:` for tests. */
+export function createDriver(path: string): Driver {
   if (path !== ":memory:") {
     mkdirSync(dirname(path), { recursive: true });
   }

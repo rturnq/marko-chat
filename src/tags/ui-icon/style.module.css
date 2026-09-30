@@ -1,0 +1,8 @@
+@layer base, ui;
+
+@layer ui {
+  .icon {
+    display: block;
+    flex-shrink: 0;
+  }
+}

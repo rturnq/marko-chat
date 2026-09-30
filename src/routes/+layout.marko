@@ -1,13 +1,26 @@
+import bricolage from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2?url";
+import plexMono500 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url";
+import plexMono600 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2?url";
+import "../styles/global.css";
+
+// Every page uses these, so they load alongside the stylesheet.
+static const FONTS = [bricolage, plexMono500, plexMono600];
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Marko Chat</title>
+    // The SVG where supported, the .ico elsewhere; both are the logo.
+    <link rel="icon" href="/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <for|font| of=FONTS>
+      <link rel="preload" href=font as="font" type="font/woff2" crossorigin>
+    </for>
   </head>
   <body>
-    <main>
-      <${input.content}/>
-    </main>
+    <${input.content}/>
   </body>
 </html>

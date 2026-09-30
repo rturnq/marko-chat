@@ -1,0 +1,23 @@
+@layer base, ui;
+
+@layer ui {
+  .empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    flex-grow: 1;
+    padding: var(--feed-gutter, 28px);
+  }
+
+  .heading {
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .body {
+    color: var(--muted);
+  }
+}

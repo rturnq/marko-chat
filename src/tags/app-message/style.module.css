@@ -1,0 +1,90 @@
+/* A time column, the text, then the hover toolbar; reactions go under the text. */
+.message {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 8px;
+  padding: 7px var(--feed-gutter-end, var(--feed-gutter, 28px)) 7px
+    var(--feed-gutter, 28px);
+  position: relative;
+}
+
+.time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 26px;
+}
+
+.text {
+  font-size: 17px;
+  line-height: 26px;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.author {
+  margin-right: 8px;
+  font-weight: 800;
+  white-space: normal;
+}
+
+/* The viewer's own name */
+.own {
+  color: var(--berry);
+}
+
+/* Kept in the layout but hidden until the row is hovered or focused. */
+.toolbar {
+  display: flex;
+  gap: 6px;
+  margin-block: -3px;
+  opacity: 0;
+  position: absolute;
+  top: 7px;
+  right: var(--feed-gutter-end, var(--feed-gutter, 28px));
+}
+
+.reactions {
+  grid-column: 2;
+}
+
+.message:is(
+  :hover,
+  :has(:focus-visible),
+  :has(:popover-open),
+  :has([aria-expanded="true"])
+) {
+  background: var(--hover);
+
+  .toolbar {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .toolbar {
+    opacity: 1;
+  }
+}
+
+/*
+ * Being edited: the name, toolbar and reactions hide, leaving the time and
+ * the edit form on a tinted row. After the hover rule, which it beats.
+ */
+.message.editing {
+  background: var(--ground);
+
+  .author,
+  .toolbar,
+  .reactions {
+    display: none;
+  }
+
+  /* Level with the field's first line: its 3px border, 4px inset and 10px
+     padding (ui-text-area). */
+  .time {
+    padding-top: 17px;
+  }
+}

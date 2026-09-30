@@ -1,0 +1,30 @@
+@layer base, ui;
+
+@layer ui {
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+
+  .wordmark {
+    display: var(--logo-wordmark, inline);
+  }
+
+  .mark {
+    flex-shrink: 0;
+    stroke: var(--ink);
+
+    path {
+      fill: var(--white);
+    }
+
+    rect {
+      fill: var(--berry);
+    }
+  }
+}

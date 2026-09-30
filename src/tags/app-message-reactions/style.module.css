@@ -1,0 +1,38 @@
+.reactions,
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Reaction chips are full pills with a single border; mint when yours. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  margin: 0;
+  padding: 0 12px;
+  border: var(--line-thin) solid var(--ink);
+  border-radius: 16px;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+
+  &:hover {
+    background-image: linear-gradient(var(--hover), var(--hover));
+  }
+
+  &[aria-pressed="true"] {
+    background-color: var(--mint);
+  }
+
+  &:disabled {
+    background: var(--ground);
+    box-shadow: var(--gap);
+    color: var(--muted);
+  }
+}

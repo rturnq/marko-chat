@@ -1,0 +1,44 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 100dvh;
+  padding: 28px 16px;
+}
+
+/* The popovers' double frame, without the halftone. */
+.frame {
+  width: min(360px, 100%);
+  padding: 3px;
+  border: var(--line) solid var(--ink);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.inner {
+  border: var(--line-thin) solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.heading {
+  padding: 10px 14px;
+  border-bottom: var(--line-thin) solid var(--ink);
+  background: var(--mint);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 14px 14px;
+}
+
+.submit {
+  align-self: flex-end;
+}

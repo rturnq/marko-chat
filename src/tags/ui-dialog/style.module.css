@@ -1,0 +1,65 @@
+@layer base, ui;
+
+@layer ui {
+  .dialog {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: visible;
+    max-width: calc(100vw - 24px);
+    background: transparent;
+    color: var(--ink);
+
+    /* White again, whatever the trigger sits on */
+    --focus-color: var(--mint);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      translate: 8px 8px;
+      border-radius: 14px;
+      background: var(--halftone);
+    }
+  }
+
+  .dialog[open] {
+    /* Reset the browser's centered popover placement */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    margin-top: min(40px, 20%);
+    z-index: 10;
+    max-height: none;
+  }
+
+  .dialog::backdrop {
+    background: transparent;
+  }
+
+  .frame {
+    position: relative;
+    padding: 3px;
+    border: var(--line) solid var(--ink);
+    border-radius: 14px;
+    background: var(--white);
+  }
+
+  .inner {
+    display: flex;
+    flex-direction: column;
+    border: var(--line-thin) solid var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .heading {
+    padding: 10px 14px;
+    border-bottom: var(--line-thin) solid var(--ink);
+    background: var(--mint);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+}

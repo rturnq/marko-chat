@@ -1,0 +1,34 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  channelSlug: string;
+}
+
+<const/error=$global.session?.get("POST:/channels/$slug")>
+
+<form
+  class=styles.composer
+  method="post"
+  action=Run.href("/channels/$slug", { params: { slug: input.channelSlug } })
+>
+  <ui-text-area
+    label="Message"
+    name="text"
+    placeholder=`Message #${input.channelSlug}`
+    required
+    rows=2
+    autocomplete="off"
+    error=(error && (error.fields?.text ?? error.message))
+    value=(error && error.values?.text)
+  >
+    <@actions>
+      <ui-button
+        type="submit"
+        variant="primary"
+        icon="send"
+        size="medium"
+        label="Send"
+      />
+    </@actions>
+  </ui-text-area>
+</form>

@@ -1,0 +1,91 @@
+@layer base, ui;
+
+@layer ui {
+  /*
+   * White buttons have a double border: the outer line, a 2px white gap, then a
+   * 2px ink ring. Filled buttons (primary, open, disabled) keep the white gap
+   * but drop the ring.
+   */
+  .button {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    border-style: solid;
+    border-color: var(--ink);
+    background: var(--white);
+    box-shadow: var(--ring);
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      background-image: linear-gradient(var(--hover), var(--hover));
+      color: var(--ink);
+    }
+
+    &:active {
+      background-image:
+        linear-gradient(var(--hover), var(--hover)),
+        linear-gradient(var(--hover), var(--hover));
+    }
+  }
+
+  .text {
+    height: 44px;
+    padding: 0 16px;
+    border-width: var(--line);
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .icon {
+    padding: 0;
+    border-width: var(--line-thin);
+    border-radius: 8px;
+  }
+
+  .small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .medium {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* As tall as a text button, with its 3px line and radius */
+  .large {
+    width: 44px;
+    height: 44px;
+    border-width: var(--line);
+    border-radius: 10px;
+  }
+
+  .primary {
+    background-color: var(--berry);
+    box-shadow: var(--gap);
+    color: var(--white);
+
+    &:hover {
+      color: var(--white);
+    }
+  }
+
+  /* Open: the popover the button controls is showing. */
+  .button[aria-expanded="true"] {
+    background-color: var(--mint);
+    box-shadow: var(--gap);
+    color: var(--ink);
+  }
+
+  .button:disabled {
+    background: var(--ground);
+    box-shadow: var(--gap);
+    color: var(--muted);
+  }
+}
