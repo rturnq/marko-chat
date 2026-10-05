@@ -1,0 +1,36 @@
+import { UserStatus } from "../../server/db";
+import styles from "./style.module.css";
+
+static const LABELS = {
+  [UserStatus.Active]: "Active",
+  [UserStatus.Away]: "Away",
+  [UserStatus.Offline]: "Offline",
+};
+
+export interface Input {
+  status: UserStatus;
+  /** Hides the icon from screen readers, when the status is also written out. */
+  decorative?: boolean;
+}
+
+// Active is a lit green dot, away a yellow-orange crescent moon, offline a
+// hollow grey ring: each 12 across in a 16 box. The gradients are in the layout.
+<svg
+  class=styles.icon
+  width="16"
+  height="16"
+  viewBox="0 0 24 24"
+  role=!input.decorative && "img"
+  aria-label=!input.decorative && LABELS[input.status]
+  aria-hidden=input.decorative && "true"
+>
+  <if=input.status === UserStatus.Active>
+    <circle class=styles.active cx="12" cy="12" r="9"/>
+  </if>
+  <else if=input.status === UserStatus.Away>
+    <path class=styles.away d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </else>
+  <else>
+    <circle class=styles.offline cx="12" cy="12" r="7.5"/>
+  </else>
+</svg>

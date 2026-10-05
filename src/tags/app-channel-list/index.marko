@@ -1,0 +1,28 @@
+import type { Channel } from "../../server/db";
+import styles from "./style.module.css";
+
+export interface Input {
+  channels: Channel[] | Promise<Channel[]>;
+  activeSlug?: string;
+}
+
+<try>
+  <@placeholder>
+    <p class=styles.loading>Loading...</p>
+  </@placeholder>
+  <await|channels|=input.channels>
+    <ul class=styles.list>
+      <for|channel| of=channels by="id">
+        <li>
+          <a
+            class=styles.channel
+            href=Run.href("/channels/$slug", { params: { slug: channel.slug } })
+            aria-current=(channel.slug === input.activeSlug && "page")
+          >
+            #${channel.slug}
+          </a>
+        </li>
+      </for>
+    </ul>
+  </await>
+</try>

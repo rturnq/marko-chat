@@ -1,0 +1,80 @@
+/*
+ * Fills a glass popover inside its 1px edge (the popover's padding), so
+ * the edge stays in view: a group's heading, six rows of eight 40 cells
+ * and 8 round them, 304 tall in all. Clipped to the popover's corners.
+ */
+.scroll {
+  height: calc(3.5rem + 6 * var(--control-md) + var(--space-2) - 2px);
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 1px);
+}
+
+/*
+ * A strip stuck to the top over the emoji: the popover's glass colour with
+ * a rule 8 from its foot. It takes no room, so the first group's name sits
+ * on it, and the others slide up onto it.
+ */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: calc(3.5rem - 1px);
+  margin-bottom: calc(1px - 3.5rem);
+  background:
+    var(--divider) calc(var(--space-2) - 1px) calc(100% - var(--space-2)) /
+      calc(100% - 2 * (var(--space-2) - 1px)) 1px no-repeat,
+    rgb(22, 26, 43);
+}
+
+/*
+ * Each group's name is plain text between the groups, and sticks to the
+ * top, over the strip, while its emoji scroll under it: 8 from the
+ * popover's edge, a 32 label, then 16 to the emoji.
+ */
+.heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  height: calc(3.5rem - 1px);
+  padding: calc(var(--space-2) - 1px)
+    max(0px, var(--space-4) - 1px - var(--scrollbar-width)) var(--space-4)
+    calc(var(--space-4) - 1px);
+}
+
+/* 8 from the popover's edges */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  padding: 0 max(0px, var(--space-2) - 1px - var(--scrollbar-width))
+    calc(var(--space-2) - 1px) calc(var(--space-2) - 1px);
+}
+
+.emoji {
+  height: var(--control-md);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 1.375rem;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      var(--pressed-shadow);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus-color);
+  }
+}

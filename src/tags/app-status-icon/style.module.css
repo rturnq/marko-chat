@@ -1,0 +1,21 @@
+.icon {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.active {
+  fill: url(#status-active);
+  filter: drop-shadow(0 0 3px rgba(124, 237, 100, 0.75));
+}
+
+.away {
+  fill: url(#status-away);
+  filter: drop-shadow(0 0 3px rgba(255, 209, 0, 0.6));
+}
+
+.offline {
+  fill: none;
+  stroke: #6b7290;
+  stroke-width: 3;
+}

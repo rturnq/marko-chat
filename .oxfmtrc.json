@@ -7,6 +7,6 @@
   "ignorePatterns": [
     ".marko-run",
     "dist",
-    "src/tags/ui-emoji-picker/emoji-data.json"
+    "src/tags/app-emoji-picker/emoji-data.json"
   ]
 }

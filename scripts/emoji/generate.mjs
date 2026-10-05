@@ -18,7 +18,7 @@ const VERSION = "16.0";
 const SOURCE = path.join(import.meta.dirname, `emoji-test-${VERSION}.txt`);
 const OUTPUT = path.join(
   import.meta.dirname,
-  "../../src/tags/ui-emoji-picker/emoji-data.json",
+  "../../src/tags/app-emoji-picker/emoji-data.json",
 );
 
 const TONES = {

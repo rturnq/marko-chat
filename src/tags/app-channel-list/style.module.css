@@ -1,0 +1,65 @@
+/*
+ * 40 rows whose fills hang out past the column's content edge (--hang), so
+ * the names line up with the heading above.
+ */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0
+    calc(-1 * min(var(--hang, 0px), var(--gutter-end, var(--hang, 0px)))) 0
+    calc(-1 * var(--hang, 0px));
+  padding: 0;
+  list-style: none;
+}
+
+/* One line each: a name too long for the column ends in an ellipsis, as the
+   header's title does. */
+.channel {
+  display: block;
+  height: var(--control-md);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--hang, 0px);
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: var(--control-md);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent);
+    color: var(--text-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus-color);
+  }
+
+  /* Pressed: the hover tint a touch dimmer, faintly shaded from the top */
+  &:active {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.045), transparent);
+    box-shadow: var(--pressed-shadow);
+    color: var(--text);
+  }
+
+  /* The current channel: bold on a cyan tint */
+  &[aria-current="page"] {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 207, 251, 0.16),
+      rgba(0, 115, 216, 0.05) 55%,
+      transparent
+    );
+    color: var(--text-title);
+    font-weight: 700;
+  }
+}
+
+.loading {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}

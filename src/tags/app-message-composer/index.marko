@@ -1,0 +1,55 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  channelSlug: string;
+}
+
+<app-session/error="POST:/channels/$slug"/>
+<let/value=(error && error.values?.text) || "">
+<let/mounted=false>
+<script>mounted=true</script>
+
+<form
+  class=styles.composer
+  method="post"
+  action=Run.href("/channels/$slug", { params: { slug: input.channelSlug } })
+>
+  <ui-text-area
+    label="Message"
+    name="text"
+    placeholder=`Message #${input.channelSlug}`
+    required
+    rows=2
+    autocomplete="off"
+    autofocus=!!error
+    error=error && (error.fields?.text ?? error.message)
+    value:=value
+    onKeyDown(e) {
+      if (
+        e.key === "Enter" &&
+        !e.shiftKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.metaKey &&
+        !e.isComposing
+      ) {
+        e.preventDefault();
+        $submitButton().click();
+      }
+    }
+  >
+    <@actions>
+      <ui-button/$submitButton
+        type="submit"
+        variant="primary"
+        size="medium"
+        label="Send"
+        disabled=mounted && !value.length
+      >
+        <@icon>
+          <icon-send/>
+        </@icon>
+      </ui-button>
+    </@actions>
+  </ui-text-area>
+</form>

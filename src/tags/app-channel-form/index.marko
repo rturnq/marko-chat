@@ -1,0 +1,65 @@
+import styles from "./style.module.css";
+
+<id/dialogId>
+<id/cancelFormId>
+<app-session/error="POST:/channels"/>
+<let/value=error?.values?.name || "">
+<let/mounted=false>
+<script>mounted = true;</script>
+
+<id/buttonId>
+<ui-button
+  id=buttonId
+  type="button"
+  label="New channel"
+  commandfor=dialogId
+  command="show-modal"
+>
+  <@icon>
+    <icon-add/>
+  </@icon>
+</ui-button>
+// A failed create comes back with the dialog rendered open, showing its error.
+<ui-dialog
+  id=dialogId
+  open=error ? buttonId : false
+  onClose() {
+    value = "";
+    error = undefined;
+  }
+>
+  <@heading>New channel</@heading>
+  <form class=styles.form method="post" action=Run.href("/channels")>
+    <ui-text-field
+      label="Name"
+      name="name"
+      prefix="#"
+      hint="2–50 characters"
+      error=error && (error.fields?.name ?? error.message)
+      value:=value
+      required
+      minlength=1
+      maxlength=50
+      autocomplete="off"
+      autofocus
+    />
+    <div class=styles.actions>
+      // Submits the empty form below, which closes the dialog without sending
+      // or checking this one; it needs no script, so it works however the
+      // dialog was opened. Owned by that form, it isn't this one's first
+      // submit button, so Enter in the field goes to Create.
+      <ui-button class=styles.action type="submit" form=cancelFormId>
+        Cancel
+      </ui-button>
+      <ui-button
+        class=styles.action
+        type="submit"
+        variant="primary"
+        disabled=mounted && !value.length
+      >
+        Create
+      </ui-button>
+    </div>
+  </form>
+  <form id=cancelFormId method="dialog"/>
+</ui-dialog>

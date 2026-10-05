@@ -1,0 +1,103 @@
+/* The feed, with the refresh button floating over its top right */
+.list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.feed {
+  flex-grow: 1;
+}
+
+/* A glass chip, frosted and darkened so it reads over the messages under it.
+   24 down, level with the new channel button in the channels column. */
+.refresh {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--feed-gutter, 1.5rem);
+  z-index: 1;
+  background-color: rgba(12, 14, 24, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* A classic scrollbar comes out of the feed's right-hand gutter. */
+.content {
+  --feed-gutter-end: max(
+    0px,
+    var(--feed-gutter, 1.5rem) - var(--scrollbar-width)
+  );
+
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) 0;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Day rule: WED 30 SEP between two lines that fade out away from it */
+.day {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 1rem;
+  margin: var(--space-4) var(--feed-gutter-end) var(--space-2)
+    var(--feed-gutter, 1.5rem);
+
+  &::before,
+  &::after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2));
+  }
+
+  &::after {
+    background: linear-gradient(270deg, transparent, rgba(255, 255, 255, 0.2));
+  }
+}
+
+/* A glowing cyan link on a cyan-blue underline */
+.pager {
+  align-self: center;
+  padding-bottom: var(--space-1);
+  background: linear-gradient(90deg, var(--cyan), var(--blue)) left bottom /
+    100% 2px no-repeat;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-decoration: none;
+  text-shadow: 0 0 12px rgba(0, 207, 251, 0.45);
+
+  &:hover {
+    color: #7fe6ff;
+  }
+}
+
+.messages + .pager {
+  margin-top: var(--space-4);
+}
+
+.loading {
+  padding: 0 var(--feed-gutter-end) 0 var(--feed-gutter, 1.5rem);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+/* Eight 40 cells and 8 either side. The picker fills it inside its 1px
+   edge, so its sticky headings run edge to edge without covering it. */
+.picker {
+  width: calc(8 * var(--control-md) + 2 * var(--space-2));
+  padding: 1px;
+}

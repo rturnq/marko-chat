@@ -1,0 +1,456 @@
+/*
+ * Breakpoints sit in the gaps between common devices' widths. Below 1100px
+ * (iPad Pro 13" portrait and small laptops; iPads in landscape are 1133 and
+ * up) the aside becomes a drawer. Below 840px (every iPad in portrait,
+ * 744-834, and phones in landscape) the nav does too. Below 640px (phones in
+ * portrait, 360-440) the header and gutters tighten.
+ */
+.app {
+  --column: 15rem;
+  --header-height: 5rem;
+  --drawer-width: min(17.5rem, 85vw);
+  /* What a drawer dims the page behind it with */
+  --drawer-backdrop: rgba(4, 5, 10, 0.55);
+
+  /* The feed's side gutter, and the edge of the columns' content */
+  --feed-gutter: var(--space-6);
+
+  /* How far a row's fill hangs out past the content edge */
+  --hang: var(--space-3);
+
+  /* The members button at its widest: its padding, icon and gap, and a
+     3-digit count, 30 wide (1K+ is a little narrower); the icon's 16 is
+     fixed in its SVG, so it stays in px */
+  --members-max: calc(2 * var(--space-4) + 16px + var(--space-2) + 1.875rem);
+
+  position: relative;
+  display: grid;
+  grid-template:
+    "header header header" var(--header-height)
+    "nav main aside" minmax(0, 1fr)
+    / var(--column) minmax(0, 1fr) var(--column);
+  height: 100dvh;
+
+  /* The grey lines between the sections, owned by the side columns so the
+     middle one is exactly what's between them */
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
+  }
+
+  &::before {
+    left: calc(var(--column) - 1px);
+  }
+
+  &::after {
+    right: calc(var(--column) - 1px);
+  }
+}
+
+/* The logo centred over the nav, the title centred over the feed, the
+   account over the aside */
+.header {
+  grid-area: header;
+  display: grid;
+  grid-template-columns: var(--column) minmax(0, 1fr) var(--column);
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+}
+
+.title {
+  justify-self: center;
+  max-width: 100%;
+  padding: 0 var(--feed-gutter);
+  overflow: hidden;
+  color: var(--text-title);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 2.5rem;
+  letter-spacing: -0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow:
+    0 0 30px rgba(255, 255, 255, 0.2),
+    0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+/* The status button 16 in from the aside's edges, as it is from the
+   header's top and bottom */
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+}
+
+/* Shown only once their panel has become a drawer */
+.navToggle,
+.asideToggle {
+  display: none;
+}
+
+/* As wide as its name, up to as wide as the members and status buttons
+   beside the logo: here, as wide as they get, with a 3-digit count; below
+   840px, where anchor sizing works, exactly as wide as they are. */
+.navToggle {
+  justify-content: flex-start;
+  max-width: calc(var(--control-lg) + var(--space-2) + var(--members-max));
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-4);
+}
+
+/* A name too long feathers out rather than ending in an ellipsis: its box
+   runs on into the button's end padding, and only that part fades, gone 6
+   short of the pill's end, so a name that fits is never faded. */
+.navName {
+  min-width: 0;
+  margin-right: calc(-1 * var(--space-4));
+  padding-right: var(--space-4);
+  overflow: hidden;
+  text-align: left;
+  mask-image: linear-gradient(
+    90deg,
+    #000 calc(100% - var(--space-4)),
+    transparent calc(100% - 6px)
+  );
+}
+
+/* A pill: the icon centred in its round end, 24 in, then the count */
+.asideToggle {
+  gap: var(--space-2);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-4);
+}
+
+/* Every digit as wide as the others, so the button only changes width when
+   the count gains or loses one */
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Open while their drawer shows */
+.app:has(.nav:popover-open) .navToggle,
+.app:has(.aside:popover-open) .asideToggle {
+  background: linear-gradient(
+    120deg,
+    rgba(0, 207, 251, 0.2),
+    rgba(0, 115, 216, 0.08)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 207, 251, 0.5),
+    0 0 18px -6px rgba(0, 207, 251, 0.6);
+  color: var(--text);
+
+  > svg {
+    color: var(--cyan);
+  }
+}
+
+.main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+ * The nav and aside are popovers, but stay ordinary columns while there's
+ * room: these override the browser's popover styles, which hide a closed
+ * popover and centre an open one.
+ */
+.nav,
+.aside {
+  /* Their content sits 24 in from the column's edges. */
+  --gutter: var(--space-6);
+
+  position: static;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+}
+
+.nav {
+  grid-area: nav;
+}
+
+.aside {
+  grid-area: aside;
+}
+
+.scroll {
+  flex-grow: 1;
+}
+
+/*
+ * A classic scrollbar comes out of the right-hand gutter, not the content:
+ * --gutter-end is what's left of it, for rows that hang past the edge.
+ */
+.panel {
+  --gutter-end: calc(var(--gutter) - var(--scrollbar-width));
+
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--gutter-end) var(--space-6) var(--gutter);
+}
+
+/*
+ * A drawer left open as the window widens stays in the top layer, out of
+ * its grid column, until dismissed. Wherever it's a column again, pin it
+ * exactly over that column, so nothing moves.
+ */
+@media (width >= 840px) {
+  .nav:popover-open {
+    position: fixed;
+    inset: var(--header-height) auto 0 0;
+    width: var(--column);
+  }
+}
+
+@media (width >= 1100px) {
+  .aside:popover-open {
+    position: fixed;
+    inset: var(--header-height) 0 0 auto;
+    width: var(--column);
+  }
+}
+
+/* Drawers are frosted glass, lit along their inner edge. */
+@media (width < 1100px) {
+  .app {
+    grid-template:
+      "header header" var(--header-height)
+      "nav main" minmax(0, 1fr)
+      / var(--column) minmax(0, 1fr);
+
+    &::after {
+      display: none;
+    }
+  }
+
+  /*
+   * The title between the logo's column and the account, 24 clear of each.
+   * The columns either side grow equally, so a title that fits centres on
+   * the whole screen; a long one shrinks them to their minimums, the nav's
+   * width and the account's, and takes all the room between before it's cut.
+   */
+  .header {
+    grid-template-columns: minmax(var(--column), 1fr) minmax(0, auto) minmax(
+        max-content,
+        1fr
+      );
+    column-gap: var(--feed-gutter);
+  }
+
+  /* The logo stays centred over the nav, however wide its column grows. */
+  .brand {
+    grid-area: 1 / 1;
+    justify-self: start;
+    width: var(--column);
+  }
+
+  .title {
+    grid-area: 1 / 2;
+    padding: 0;
+  }
+
+  .account {
+    grid-area: 1 / 3;
+    justify-self: end;
+    padding: 0 var(--feed-gutter) 0 0;
+  }
+
+  .asideToggle {
+    display: inline-flex;
+  }
+
+  .aside {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: var(--drawer-width);
+    background:
+      radial-gradient(
+        ellipse 90% 25% at 30% 0%,
+        rgba(255, 255, 255, 0.07),
+        transparent 70%
+      ),
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.03) 50%,
+        rgba(255, 255, 255, 0.05)
+      ),
+      rgba(10, 12, 22, 0.55);
+    box-shadow:
+      inset 1px 0 0 rgba(255, 255, 255, 0.16),
+      -32px 0 80px -24px rgba(0, 0, 0, 0.9);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
+    backdrop-filter: blur(28px) saturate(170%);
+
+    &:not(:popover-open) {
+      display: none;
+    }
+
+    &::backdrop {
+      background: var(--drawer-backdrop);
+    }
+  }
+}
+
+@media (width < 840px) {
+  .app {
+    grid-template:
+      "header" var(--header-height)
+      "main" minmax(0, 1fr)
+      / minmax(0, 1fr);
+
+    &::before {
+      display: none;
+    }
+  }
+
+  /* [# general] … [logo] … [members][status], the outer two as wide as each
+     other, so the logo centres on the screen */
+  .header {
+    grid-template-areas: "toggle brand account";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    column-gap: var(--space-2);
+    padding: 0 var(--feed-gutter);
+  }
+
+  .brand {
+    grid-area: brand;
+    justify-self: auto;
+    width: auto;
+  }
+
+  .navToggle {
+    grid-area: toggle;
+    display: inline-flex;
+    justify-self: start;
+  }
+
+  .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .account {
+    grid-area: account;
+    padding: 0;
+    anchor-name: --header-account;
+  }
+
+  /*
+   * Where anchor sizing works, the channel button grows to no wider than the
+   * account, whatever the count. Positioned in its grid cell, it no longer
+   * sizes that cell (the columns stay equal as 1fr anyway), and can be sized
+   * off another box.
+   */
+  @supports (width: anchor-size(width)) {
+    .navToggle {
+      position: absolute;
+      align-self: center;
+      max-width: anchor-size(--header-account width);
+    }
+  }
+
+  .nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--drawer-width);
+    background:
+      radial-gradient(
+        ellipse 90% 25% at 30% 0%,
+        rgba(255, 255, 255, 0.07),
+        transparent 70%
+      ),
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.03) 50%,
+        rgba(255, 255, 255, 0.05)
+      ),
+      rgba(10, 12, 22, 0.55);
+    box-shadow:
+      inset -1px 0 0 rgba(255, 255, 255, 0.16),
+      32px 0 80px -24px rgba(0, 0, 0, 0.9);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
+    backdrop-filter: blur(28px) saturate(170%);
+
+    /*
+     * A dialog opened from the drawer, the new channel form, takes the
+     * drawer's dim, with its own small blur, while the drawer's backdrop goes
+     * transparent (below), so the page is dimmed the same.
+     */
+    --dialog-backdrop: var(--drawer-backdrop);
+
+    &:not(:popover-open, :has(:popover-open, dialog[open])) {
+      display: none;
+    }
+
+    /*
+     * Also shown, outside the top layer, while a popover or dialog inside
+     * it is open: a failed new channel comes back with its dialog open.
+     * Unblurred, as a backdrop filter would make the drawer the box that
+     * dialog and its scrim are fixed to, in place of the window, so its
+     * glass gets a solid base, the colour it has when blurred, rather than
+     * showing the page through it.
+     */
+    &:has(:popover-open, dialog[open]):not(:popover-open) {
+      z-index: 2;
+      background-color: rgb(13, 15, 26);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    &::backdrop {
+      background: var(--drawer-backdrop);
+    }
+
+    &:has(dialog[open])::backdrop {
+      background: transparent;
+    }
+  }
+}
+
+/*
+ * Phones: a 64 header with the logo's bars alone, and 16 gutters. The
+ * header's 48 buttons keep 8 from its edges on every side, rather than
+ * lining up with the feed.
+ */
+@media (width < 640px) {
+  .app {
+    --header-height: 4rem;
+    --feed-gutter: var(--space-4);
+  }
+
+  .header {
+    padding: 0 var(--space-2);
+  }
+
+  .brand {
+    --logo-wordmark: none;
+  }
+}
