@@ -1,0 +1,88 @@
+import styles from "./styles.module.css";
+import { href } from "../../utils/url";
+
+export interface Input {
+  id: string;
+  slug: string;
+  url: URL;
+  own?: true;
+  onCommand?: (e: Event, command: "edit" | "delete" | "copy-link", messageId: string) => void
+}
+
+<ui-popover|Context, $popover| id=input.id class=styles.menu align="end">
+  <Context/messageId/>
+  <form
+    method="post"
+    action=messageId && Run.href("/messages/$id", { params: { id: messageId } })
+  >
+    <ui-menu>
+      <ui-menu-link
+        href=(
+          messageId &&
+          Run.href("/channels/$slug", {
+            params: { slug: input.slug },
+            search: { m: messageId },
+            hash: `msg-${messageId}`,
+          })
+        )
+        onClick(e, target) {
+          e.preventDefault();
+          navigator.clipboard.writeText(target.href);
+          if (input.onCommand && messageId) {
+            input.onCommand!(e, "copy-link", messageId!);
+          }
+          $popover().hidePopover();
+        }
+      >
+        <@icon>
+          <icon-link/>
+        </@icon>
+        Copy Link
+      </ui-menu-link>
+    </ui-menu>
+    <if=input.own>
+      <ui-menu>
+        <input
+          type="hidden"
+          name="returnUrl"
+          value=href(input.url, { edit: undefined })
+        >
+        <ui-menu-link
+          href=messageId && href(input.url, { edit: messageId })
+          onClick(e) {
+            if (input.onCommand && messageId) {
+              input.onCommand!(e, "edit", messageId!);
+              if (e.defaultPrevented) {
+                $popover().hidePopover();
+              }
+            }
+          }
+        >
+          <@icon>
+            <icon-edit/>
+          </@icon>
+          Edit
+        </ui-menu-link>
+        <ui-menu-button
+          type="submit"
+          name="command"
+          value="delete"
+          danger
+          onClick(e) {
+            if (input.onCommand && messageId) {
+              input.onCommand!(e, "delete", messageId!);
+              if (e.defaultPrevented) {
+                $popover().hidePopover();
+              }
+            }
+          }
+        >
+          <@icon>
+            <icon-delete/>
+          </@icon>
+          Delete
+        </ui-menu-button>
+      </ui-menu>
+    </if>
+  </form>
+</ui-popover>

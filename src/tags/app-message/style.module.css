@@ -1,0 +1,100 @@
+/*
+ * A 48 time column, then the text 16 across; reactions go under the text and
+ * the hover toolbar sits 4 inside the row's top right. A single line of text
+ * makes a 40 row: 24 lines with 8 above and below.
+ */
+.message {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  padding: var(--space-2) var(--feed-gutter-end, var(--feed-gutter, 1.5rem))
+    var(--space-2) var(--feed-gutter, 1.5rem);
+}
+
+.time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.text {
+  color: var(--text-soft);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.author {
+  margin-right: var(--space-2);
+  color: var(--text);
+  font-weight: 700;
+  white-space: normal;
+}
+
+/* The viewer's own name, in the cyan of everything that's yours */
+.own {
+  color: var(--cyan);
+  text-shadow: 0 0 14px rgba(0, 207, 251, 0.5);
+}
+
+/* Kept in the layout but hidden until the row is hovered or focused. */
+.toolbar {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--feed-gutter-end, var(--feed-gutter, 1.5rem));
+  display: flex;
+  gap: var(--space-2);
+  opacity: 0;
+}
+
+.reactions {
+  grid-column: 2;
+}
+
+.message:is(
+  :hover,
+  :has(:focus-visible),
+  :has(:popover-open),
+  :has([aria-expanded="true"])
+) {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.065),
+    rgba(255, 255, 255, 0.02) 65%,
+    transparent
+  );
+
+  .toolbar {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .toolbar {
+    opacity: 1;
+  }
+}
+
+/*
+ * Being edited: the name, toolbar and reactions hide, leaving the time and
+ * the edit form. After the hover rule, which it beats.
+ */
+.message.editing {
+  background: none;
+
+  .author,
+  .toolbar,
+  .reactions {
+    display: none;
+  }
+
+  /* Level with the field's first line, 16 inside it (ui-text-area) */
+  .time {
+    padding-top: var(--space-4);
+  }
+}

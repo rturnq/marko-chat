@@ -1,0 +1,26 @@
+import emojis from "./emoji-data.json";
+import styles from "./style.module.css";
+
+<ui-scroll-area class=styles.scroll>
+  <div class=styles.bar/>
+  <for|group| of=emojis.groups>
+    <section>
+      <h3 class=["eyebrow", styles.heading]>${group.name}</h3>
+      <div class=styles.grid>
+        <for|subgroup| of=group.subgroups>
+          <for|{ name, emoji }| of=subgroup.emojis>
+            <button
+              class=styles.emoji
+              type="submit"
+              name="add"
+              value=emoji
+              title=name
+            >
+              ${emoji}
+            </button>
+          </for>
+        </for>
+      </div>
+    </section>
+  </for>
+</ui-scroll-area>

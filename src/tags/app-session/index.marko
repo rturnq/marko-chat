@@ -1,0 +1,21 @@
+import type { SessionData } from "../../server/middleware/session";
+
+/** Everything the session can hold: its data, and what handlers flash. */
+export interface Input<Key extends keyof SessionData> {
+  /** The session key to read, such as a form's `"POST:/channels"`. */
+  value: Key;
+}
+
+// A session value as state: what the session held as the server rendered the
+// tag, then whatever it's assigned. The session never reaches the client, so
+// a tag first rendered there starts out undefined.
+<let/value=(
+  typeof window === "undefined"
+    ? ($global.session?.get(input.value) as SessionData[Key] | undefined)
+    : undefined
+)>
+<return=value
+  valueChange(next: SessionData[Key] | undefined) {
+    value = next;
+  }
+>

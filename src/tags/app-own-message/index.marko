@@ -1,0 +1,99 @@
+import type { Message } from "../../server/db";
+import styles from "./style.module.css";
+
+export interface Input {
+  message: Message;
+  editing: boolean;
+  /** The page to show once the message is edited or deleted. */
+  returnUrl: string;
+  /** This page with this message in edit mode. */
+  editHref: string;
+  onCancelEdit?: () => void;
+}
+
+<const/{ message }=input>
+<let/mounted=false>
+<script>mounted=true</script>
+
+<app-message
+  message=message
+  viewerId=message.authorId
+  own=!input.editing
+  editing=input.editing
+>
+  <@text>
+    <if=input.editing>
+      // What a failed edit left behind. Read as the form is first rendered:
+      // by the server for the message a failed edit comes back to, and never
+      // again once the form has closed.
+      <app-session/error="POST:/messages/$id"/>
+      <let/value=error ? error.values?.text || "" : message.text>
+      <form
+        class=styles.edit
+        method="post"
+        action=Run.href("/messages/$id", { params: { id: message.id } })
+      >
+        <input type="hidden" name="returnUrl" value=input.returnUrl>
+        <ui-text-area
+          label="Message"
+          name="text"
+          placeholder="Type a message"
+          required
+          rows=1
+          autocomplete="off"
+          autofocus
+          value:=value
+          error=error && (error.fields?.text ?? error.message)
+          onKeyDown(e) {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.ctrlKey &&
+              !e.altKey &&
+              !e.metaKey &&
+              !e.isComposing
+            ) {
+              e.preventDefault();
+              $submitButton().click();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              $cancelButton().click();
+            }
+          }
+        >
+          <@actions>
+            <ui-link-button/$cancelButton
+              href=input.returnUrl
+              size="medium"
+              label="Cancel"
+              onClick(e) {
+                if (input.onCancelEdit) {
+                  e.preventDefault();
+                  input.onCancelEdit();
+                }
+              }
+            >
+              <@icon>
+                <icon-cancel/>
+              </@icon>
+            </ui-link-button>
+            <ui-button/$submitButton
+              type="submit"
+              name="command"
+              value="edit"
+              variant="primary"
+              size="medium"
+              label="Save"
+              disabled=mounted && !value.length
+            >
+              <@icon>
+                <icon-save/>
+              </@icon>
+            </ui-button>
+          </@actions>
+        </ui-text-area>
+      </form>
+    </if>
+    <else>${message.text}</else>
+  </@text>
+</app-message>

@@ -1,0 +1,66 @@
+import type { Message } from "../../server/db";
+import { formatTime } from "../../utils/date";
+import styles from "./style.module.css";
+
+export interface Input {
+  message: Message;
+  viewerId: string;
+  text?: Marko.AttrTag<{ content: Marko.Body }>;
+  own?: boolean;
+  editing?: boolean;
+}
+
+<const/{ message }=input>
+<const/createdAt=new Date(message.createdAt)>
+
+<li class=[styles.message, input.editing && styles.editing] id=`msg-${message.id}`>
+  <time
+    class=styles.time
+    datetime=createdAt.toISOString()
+    title=createdAt.toLocaleString("en-GB")
+  >
+    ${formatTime(message.createdAt)}
+  </time>
+  <div class=styles.text>
+    <strong class=[
+      styles.author,
+      message.authorId === input.viewerId && styles.own,
+    ]>
+      ${message.authorName}
+    </strong>
+    <if=input.text>
+      <${input.text}/>
+    </if>
+    <else>${message.text}</else>
+  </div>
+  <div class=styles.toolbar>
+    <ui-button
+      type="button"
+      label="Add a reaction"
+      popovertarget="emoji-picker-menu"
+      popovervalue=message.id
+    >
+      <@icon>
+        <icon-add-reaction/>
+      </@icon>
+    </ui-button>
+    <ui-button
+      type="button"
+      label="More actions"
+      popovertarget=input.own ? "own-message-menu" : "message-menu"
+      popovervalue=message.id
+    >
+      <@icon>
+        <icon-more/>
+      </@icon>
+    </ui-button>
+  </div>
+  <if=message.reactions.length>
+    <app-message-reactions
+      class=styles.reactions
+      messageId=message.id
+      reactions=message.reactions
+      viewerId=input.viewerId
+    />
+  </if>
+</li>

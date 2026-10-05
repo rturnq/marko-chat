@@ -1,0 +1,28 @@
+import type { User } from "../../server/db";
+import styles from "./style.module.css";
+
+export interface Input {
+  title: string;
+  members: User[] | Promise<User[]>;
+  /** Greys out the names, for members who are offline. */
+  muted?: boolean;
+}
+
+// Placeholders are shipped to the browser, so they stay plain markup.
+<try>
+  <@placeholder>
+    <p class=styles.loading>Loading...</p>
+  </@placeholder>
+  <await|members|=input.members>
+    <ui-collapse-section heading=`${input.title} · ${members.length}`>
+      <ul class=[styles.list, input.muted && styles.muted]>
+        <for|member| of=members by="id">
+          <li class=styles.member>
+            <app-status-icon status=member.status/>
+            <span class=styles.name>${member.displayName}</span>
+          </li>
+        </for>
+      </ul>
+    </ui-collapse-section>
+  </await>
+</try>

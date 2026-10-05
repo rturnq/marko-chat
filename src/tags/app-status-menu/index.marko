@@ -1,0 +1,62 @@
+import { UserStatus, type User } from "../../server/db";
+import styles from "./style.module.css";
+
+static const STATUSES = [
+  { label: "Active", status: UserStatus.Active },
+  { label: "Away", status: UserStatus.Away },
+  { label: "Offline", status: UserStatus.Offline },
+];
+
+export interface Input {
+  user: User | undefined | Promise<User | undefined>;
+}
+
+<id/id>
+
+<ui-button class=styles.button type="button" popovertarget=id>
+  <try>
+    <@placeholder>
+      <app-status-icon status=UserStatus.Offline/>
+      <span class=styles.name>Loading...</span>
+    </@placeholder>
+    <await|user|=input.user>
+      <app-status-icon status=user?.status || UserStatus.Offline/>
+      <span class=styles.name>${user?.displayName || "Unknown"}</span>
+    </await>
+  </try>
+  <icon-chevron-down/>
+</ui-button>
+
+<ui-popover id=id class=styles.menu align="end">
+  <@heading>Status</@heading>
+  <form method="post" action=Run.href("/me")>
+    <try>
+      <@placeholder/>
+      <await|user|=input.user>
+        <if=user>
+          <ui-menu>
+            <for|{ label, status }| of=STATUSES>
+              <ui-menu-button
+                type="submit"
+                name="status"
+                value=String(status)
+                current=user.status === status
+              >
+                <app-status-icon status=status decorative/>
+                ${label}
+              </ui-menu-button>
+            </for>
+          </ui-menu>
+        </if>
+      </await>
+    </try>
+    <ui-menu>
+      <ui-menu-button type="submit" formaction=Run.href("/logout")>
+        <@icon>
+          <icon-log-out/>
+        </@icon>
+        Log out
+      </ui-menu-button>
+    </ui-menu>
+  </form>
+</ui-popover>

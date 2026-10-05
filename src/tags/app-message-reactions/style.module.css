@@ -1,0 +1,78 @@
+.reactions,
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Glass pills; yours are ringed in cyan. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-sm);
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 0 calc(var(--space-3) - 1px);
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14),
+      rgba(255, 255, 255, 0.055)
+    )
+    padding-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 8px 16px -8px rgba(0, 0, 0, 0.85);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  &:hover {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.08)
+      )
+      padding-box;
+  }
+
+  &[aria-pressed="true"] {
+    background:
+      linear-gradient(120deg, rgba(0, 207, 251, 0.22), rgba(0, 115, 216, 0.14))
+        padding-box,
+      linear-gradient(#0c1020, #0c1020) padding-box,
+      linear-gradient(120deg, var(--cyan), var(--blue)) border-box;
+    box-shadow: 0 0 16px -4px rgba(0, 207, 251, 0.55);
+  }
+
+  /* Pressed: a touch dimmer, faintly shaded from the top */
+  &:active:not(:disabled) {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.045)
+      )
+      padding-box;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      var(--pressed-shadow);
+  }
+
+  &[aria-pressed="true"]:active:not(:disabled) {
+    background:
+      linear-gradient(120deg, rgba(0, 207, 251, 0.17), rgba(0, 115, 216, 0.1))
+        padding-box,
+      linear-gradient(#0c1020, #0c1020) padding-box,
+      linear-gradient(120deg, var(--cyan), var(--blue)) border-box;
+    box-shadow:
+      var(--pressed-shadow),
+      0 0 12px -4px rgba(0, 207, 251, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+  }
+}

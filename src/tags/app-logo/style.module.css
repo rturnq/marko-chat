@@ -1,0 +1,26 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 1.5rem;
+  color: var(--text-chrome);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wordmark {
+  display: var(--logo-wordmark, inline);
+}
+
+/* 28 by 20 at the default size: four 4 wide bars, 4 apart */
+.bars {
+  display: block;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.25rem;
+}

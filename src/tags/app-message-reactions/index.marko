@@ -1,0 +1,34 @@
+import type { Reaction } from "../../server/db";
+import styles from "./style.module.css";
+
+export interface Input extends Pick<Marko.HTML.Div, "class"> {
+  messageId: string;
+  viewerId: string;
+  reactions: Reaction[];
+}
+
+<div class=[styles.reactions, input.class]>
+  <form
+    class=styles.pills
+    method="post"
+    action=Run.href("/messages/$id/reaction", {
+      params: { id: input.messageId },
+    })
+  >
+    <for|reaction| of=input.reactions by="symbol">
+      <const/reacted=reaction.authors.some(
+        (author) => author.authorId === input.viewerId,
+      )>
+      <button
+        class=styles.pill
+        type="submit"
+        name=reacted ? "remove" : "add"
+        value=reaction.symbol
+        aria-pressed=reacted ? "true" : "false"
+        title=`${reaction.authors.map((author) => (author.authorId === input.viewerId ? "you" : author.authorName)).join(", ")} reacted`
+      >
+        ${reaction.symbol} ${reaction.authors.length}
+      </button>
+    </for>
+  </form>
+</div>
