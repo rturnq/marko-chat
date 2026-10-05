@@ -155,19 +155,51 @@ export class Db {
     `);
   }
 
-  async createUser(name: string): Promise<User> {
+  /** A user's id and password hash, by name, to check a login against. */
+  async getLogin(
+    name: string,
+  ): Promise<{ id: string; passwordHash: string | null } | undefined> {
     const db = await this.#connection();
-    const user = await db.first<UserRow>(
+    return db.first(
+      `SELECT id, password_hash AS passwordHash FROM users WHERE name = ?`,
+      name,
+    );
+  }
+
+  /**
+   * Whether a new user can't have this name: it's someone's login or display
+   * name already, in any case, so nobody can pass as someone else.
+   */
+  async isNameTaken(name: string): Promise<boolean> {
+    const db = await this.#connection();
+    return !!(await db.first(
       `
-      INSERT INTO users (id, name, display_name, status, created_at)
-      VALUES (?1, ?2, ?2, ${UserStatus.Active}, ?3)
+      SELECT 1 FROM users
+      WHERE name = ?1 COLLATE NOCASE OR display_name = ?1 COLLATE NOCASE
+      LIMIT 1
+      `,
+      name,
+    ));
+  }
+
+  /** Creates a user, unless the name is already taken. */
+  async createUser(
+    name: string,
+    passwordHash: string,
+  ): Promise<User | undefined> {
+    const db = await this.#connection();
+    return db.first<UserRow>(
+      `
+      INSERT INTO users (id, name, display_name, password_hash, status, created_at)
+      VALUES (?1, ?2, ?2, ?3, ${UserStatus.Active}, ?4)
+      ON CONFLICT (name) DO NOTHING
       RETURNING ${USER_COLUMNS}
       `,
       shortId(),
       name,
+      passwordHash,
       Date.now(),
     );
-    return user!;
   }
 
   async updateUserDisplayName(

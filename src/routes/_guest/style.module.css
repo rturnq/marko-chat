@@ -1,0 +1,68 @@
+/*
+ * The rainbow header holding just the logo, over a 400 column (320 of
+ * content) framed by two grey lines, like the chat page's sections.
+ */
+/* On a screen narrower than the column, the lines fall past its edges and
+   are clipped, rather than widening the page. */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow-x: clip;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+
+  &::before {
+    left: calc(50% - 12.5rem - 1px);
+  }
+
+  &::after {
+    right: calc(50% - 12.5rem - 1px);
+  }
+}
+
+.header {
+  justify-content: center;
+  height: 5rem;
+}
+
+/* The page's heading, then its form, 32 apart */
+.main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-8);
+  flex-grow: 1;
+  width: min(25rem, 100%);
+  margin: 0 auto;
+  padding: var(--space-8) 2.5rem 5rem;
+
+  h1 {
+    color: var(--text-title);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    letter-spacing: -0.03em;
+    text-shadow:
+      0 0 30px rgba(255, 255, 255, 0.2),
+      0 0 2px rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Phones: the shorter header the chat page has there; the lines and the
+   column stay as they are. */
+@media (width < 640px) {
+  .header {
+    height: 4rem;
+  }
+}

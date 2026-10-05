@@ -147,3 +147,33 @@ describe("getMessages", () => {
     });
   });
 });
+
+describe("users", () => {
+  it("creates a user with a password hash", async () => {
+    const user = await db.createUser("ada", "scrypt$hash");
+    expect(user).toMatchObject({ name: "ada", displayName: "ada" });
+    expect(await db.getLogin("ada")).toEqual({
+      id: user!.id,
+      passwordHash: "scrypt$hash",
+    });
+  });
+
+  it("won't create a user whose name is taken", async () => {
+    await db.createUser("ada", "first");
+    expect(await db.createUser("ada", "second")).toBeUndefined();
+    expect((await db.getLogin("ada"))!.passwordHash).toBe("first");
+  });
+
+  it("counts a name as taken if it's any user's name or display name, in any case", async () => {
+    await db.createUser("ada", "hash");
+    expect(await db.isNameTaken("ada")).toBe(true);
+    expect(await db.isNameTaken("ADA")).toBe(true);
+    // The seeded system user logs in as _system and shows as Admin.
+    expect(await db.isNameTaken("admin")).toBe(true);
+    expect(await db.isNameTaken("grace")).toBe(false);
+  });
+
+  it("has no login for an unknown name", async () => {
+    expect(await db.getLogin("nobody")).toBeUndefined();
+  });
+});

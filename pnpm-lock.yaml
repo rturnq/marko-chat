@@ -26,6 +26,9 @@ importers:
       '@remix-run/session-middleware':
         specifier: ^0.5.0
         version: 0.5.0
+      hash-wasm:
+        specifier: ^4.12.0
+        version: 4.12.0
       marko:
         specifier: ^6.3.53
         version: 6.3.53
@@ -1055,6 +1058,9 @@ packages:
   glob@13.0.6:
     resolution: {integrity: sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==}
     engines: {node: 18 || 20 || >=22}
+
+  hash-wasm@4.12.0:
+    resolution: {integrity: sha512-+/2B2rYLb48I/evdOIhP+K/DD2ca2fgBjp6O+GBEnCDk2e4rpeXIK8GvIyRPjTezgmWn9gmKwkQjjx6BtqDHVQ==}
 
   htmljs-parser@5.15.0:
     resolution: {integrity: sha512-30yoZmgr4gDCl7kqplFEYeV0buxezcdiNVYFtrvWzPiljaHNBhxEgAiWjgc3nV8n5nYpx58JNUfnt0QxaWg2vQ==}
@@ -2290,6 +2296,8 @@ snapshots:
       minimatch: 10.2.6
       minipass: 7.1.3
       path-scurry: 2.0.2
+
+  hash-wasm@4.12.0: {}
 
   htmljs-parser@5.15.0: {}
 
