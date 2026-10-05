@@ -1,0 +1,29 @@
+@layer base, ui;
+
+@layer ui {
+  /* Above the page's grey section lines, which run up behind the rainbow */
+  .header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+
+    > * {
+      position: relative;
+    }
+
+    /*
+     * The rainbow, drawn by rainbow.svg: the line along the bottom, fading
+     * out at both ends, its glow, and its light, a wash rising from it over
+     * fine vertical lines. The image is twice the header's height: the
+     * header is its top half, and the glow falls into its bottom one.
+     */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 -100%;
+      background: url("/rainbow.svg") 0 0 / 100% 100% no-repeat;
+      pointer-events: none;
+    }
+  }
+}

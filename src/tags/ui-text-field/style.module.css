@@ -1,0 +1,114 @@
+@layer base, ui;
+
+@layer ui {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .label {
+    color: var(--text-chrome);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+
+  /*
+   * The text area's image box (global.css), 48 tall with a 12 corner like
+   * the large button beside it. The edge is drawn inside the box (::before).
+   */
+  .control {
+    --glow: rgba(255, 255, 255, 0.07);
+    --edge: var(--field-edge);
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: var(--control-lg);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(
+        ellipse 60% 140% at 50% 150%,
+        var(--glow),
+        transparent 60%
+      ),
+      var(--field-fill);
+    box-shadow: var(--field-shadow);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: var(--edge);
+      mask:
+        linear-gradient(#000 0 0) content-box exclude,
+        linear-gradient(#000 0 0);
+      pointer-events: none;
+    }
+
+    &:focus-within {
+      --glow: rgba(0, 207, 251, 0.26);
+      --edge: var(--field-edge-focus);
+
+      box-shadow: var(--field-shadow-focus);
+    }
+
+    input {
+      flex-grow: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      padding: 0 var(--space-4);
+      background: transparent;
+      caret-color: var(--cyan);
+      font-size: 1.0625rem;
+      outline: none;
+
+      &::placeholder {
+        color: var(--muted);
+      }
+
+      &:disabled {
+        color: var(--muted);
+        cursor: not-allowed;
+      }
+    }
+
+    &:has(input:disabled) {
+      opacity: 0.6;
+    }
+  }
+
+  .invalid,
+  .invalid:focus-within {
+    --glow: rgba(255, 84, 103, 0.24);
+    --edge: var(--field-edge-error);
+
+    box-shadow: var(--field-shadow-error);
+
+    input {
+      caret-color: var(--coral);
+    }
+  }
+
+  .prefix {
+    padding-left: var(--space-4);
+    color: var(--muted);
+    font-size: 1.0625rem;
+
+    & + input {
+      padding-left: var(--space-1);
+    }
+  }
+
+  .hint {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+  }
+}

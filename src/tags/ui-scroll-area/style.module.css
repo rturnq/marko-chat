@@ -1,0 +1,44 @@
+@layer base, ui;
+
+/*
+ * The host is as wide as the scroller, scrollbar and all, and the scroller
+ * records that width. Inside it, the measure box is a container as wide as
+ * what the scrollbar leaves (a scroller used as a container would count its
+ * own scrollbar), so the content inside works out the scrollbar's width.
+ * Both are registered lengths (global.css), so the container units resolve
+ * to pixels where they're set.
+ */
+@layer ui {
+  .host {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .scroller {
+    --scroller-width: 100cqw;
+
+    flex-grow: 1;
+    min-height: 0;
+    /* Scrolls up and down only: overflow-y alone would let a pixel of
+       sideways overflow bring up a horizontal scrollbar. */
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* One child, reversed: the scroller starts at the child's end. */
+  .reverse {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .measure {
+    container-type: inline-size;
+  }
+
+  .content {
+    --scrollbar-width: calc(var(--scroller-width) - 100cqw);
+  }
+}

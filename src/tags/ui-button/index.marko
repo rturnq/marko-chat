@@ -1,0 +1,37 @@
+import styles from "./style.module.css";
+
+export interface Input extends Marko.HTML.Button {
+  variant?: "default" | "primary";
+  /**
+   * An icon tag, such as `<icon-add/>`, shown instead of the content: name
+   * the button with `label`.
+   */
+  icon?: Marko.AttrTag<{ content: Marko.Body }>;
+  label?: string;
+  size?: "small" | "medium" | "large";
+  popovervalue?: string;
+}
+
+<const/{ variant, icon, label, title, size, popovervalue, ...rest }=input>
+<const/classes=[
+  styles.button,
+  variant === "primary" && styles.primary,
+  icon ? [styles.icon, styles[size ?? "small"]] : styles.text,
+  input.class,
+]>
+
+<button/$el
+  ...rest  
+  data-popovervalue=popovervalue
+  class=classes
+  aria-label=label
+  title=label ?? title
+>
+  <if=icon>
+    <${icon.content}/>
+  </if>
+  <else>
+    <${input.content}/>
+  </else>
+</button>
+<return=$el>

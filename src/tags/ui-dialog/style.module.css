@@ -1,0 +1,78 @@
+@layer base, ui;
+
+@layer ui {
+  /* Frosted glass, like the popovers, centred over the page */
+  .dialog {
+    margin: 0;
+    border: 0;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    overflow: hidden;
+    width: 25rem;
+    max-width: calc(100vw - 2 * var(--space-4));
+    background: var(--glass);
+    box-shadow: var(--glass-edge), var(--glass-shadow);
+    color: var(--text);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+
+  .dialog[open] {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    height: fit-content;
+    max-height: none;
+    margin: auto;
+  }
+
+  /*
+   * Dims and blurs the page behind a modal dialog, or, through the scrim
+   * before it, one the server rendered open: that isn't modal, so it has no
+   * ::backdrop of its own. A dialog's container can change both, through
+   * --dialog-backdrop (a background) and --dialog-backdrop-filter.
+   */
+  .dialog::backdrop,
+  .scrim {
+    background: var(
+      --dialog-backdrop,
+      radial-gradient(
+        ellipse 60% 60% at 50% 50%,
+        rgba(6, 7, 13, 0.5),
+        rgba(6, 7, 13, 0.8)
+      )
+    );
+    -webkit-backdrop-filter: var(--dialog-backdrop-filter, blur(3px));
+    backdrop-filter: var(--dialog-backdrop-filter, blur(3px));
+  }
+
+  .scrim {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9;
+  }
+
+  .scrim:has(+ .dialog[open]:not(:modal)) {
+    display: block;
+  }
+
+  .heading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: var(--control-lg);
+    padding: 0 var(--space-6);
+    color: var(--text-chrome);
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 1px;
+      background: var(--divider);
+    }
+  }
+}

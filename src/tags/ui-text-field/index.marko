@@ -1,0 +1,55 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  label: string;
+  /** Muted text shown before the value, such as the `#` of a channel name. */
+  prefix?: string;
+  hint?: string;
+  error?: string;
+  id?: string;
+  type?: "text" | "search" | "email" | "url" | "password";
+  name?: string;
+  value?: string;
+  valueChange?: Marko.HTML.Input["valueChange"];
+  placeholder?: string;
+  required?: boolean;
+  minlength?: number;
+  maxlength?: number;
+  autocomplete?: Marko.HTML.Input["autocomplete"];
+  autofocus?: boolean;
+  disabled?: boolean;
+  class?: Marko.HTML.Div["class"];
+}
+
+<id/id=input.id>
+<const/descId=`${id}_desc`>
+
+<div class=[styles.field, input.class]>
+  <label class=styles.label for=id>${input.label}</label>
+  <div class=[styles.control, input.error && styles.invalid]>
+    <if=input.prefix>
+      <span class=styles.prefix aria-hidden="true">${input.prefix}</span>
+    </if>
+    <input
+      id=id
+      type=input.type || "text"
+      name=input.name
+      value:=input.value
+      placeholder=input.placeholder
+      required=input.required
+      minlength=input.minlength
+      maxlength=input.maxlength
+      autocomplete=input.autocomplete
+      autofocus=input.autofocus
+      disabled=input.disabled
+      aria-describedby=(input.error || input.hint) && descId
+      aria-invalid=input.error ? "true" : undefined
+    >
+  </div>
+  <if=input.error>
+    <ui-alert id=descId>${input.error}</ui-alert>
+  </if>
+  <else if=input.hint>
+    <span class=styles.hint id=descId>${input.hint}</span>
+  </else>
+</div>

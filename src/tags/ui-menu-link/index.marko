@@ -1,0 +1,19 @@
+import styles from "../ui-menu-button/style.module.css";
+
+export interface Input extends Marko.HTML.A {
+  /** An icon tag, such as `<icon-add/>`, shown before the content. */
+  icon?: Marko.AttrTag<{ content: Marko.Body }>;
+  current?: boolean;
+  /** Deletes or otherwise can't be undone: coloured as an error. */
+  danger?: boolean;
+}
+
+<const/{ icon, current, danger, ...rest }=input>
+<const/classes=[styles.item, danger && styles.danger, input.class]>
+
+<a ...rest class=classes aria-current=current && "true">
+  <if=icon>
+    <${icon.content}/>
+  </if>
+  <${input.content}/>
+</a>

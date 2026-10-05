@@ -1,0 +1,10 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  class?: Marko.HTML.Div["class"];
+  content: Marko.Body;
+}
+
+<div class=[styles.menu, input.class]>
+  <${input.content}/>
+</div>

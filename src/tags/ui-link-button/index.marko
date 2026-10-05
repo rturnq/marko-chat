@@ -1,0 +1,30 @@
+import styles from "../ui-button/style.module.css";
+
+export interface Input extends Marko.HTML.A {
+  variant?: "default" | "primary";
+  /**
+   * An icon tag, such as `<icon-add/>`, shown instead of the content: name
+   * the link with `label`.
+   */
+  icon?: Marko.AttrTag<{ content: Marko.Body }>;
+  label?: string;
+  size?: "small" | "medium" | "large";
+}
+
+<const/{ variant, icon, label, title, size, ...rest }=input>
+<const/classes=[
+  styles.button,
+  variant === "primary" && styles.primary,
+  icon ? [styles.icon, styles[size ?? "small"]] : styles.text,
+  input.class,
+]>
+
+<a/$el ...rest class=classes aria-label=label role="button" title=label ?? title>
+  <if=icon>
+    <${icon.content}/>
+  </if>
+  <else>
+    <${input.content}/>
+  </else>
+</a>
+<return=$el>
