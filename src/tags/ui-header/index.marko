@@ -1,0 +1,12 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  class?: Marko.HTML.Header["class"];
+  content?: Marko.Body;
+}
+
+// A page's top strip: what it holds stands on the rainbow line, with the
+// line's light rising behind it.
+<header class=[styles.header, input.class]>
+  <${input.content}/>
+</header>

@@ -1,0 +1,27 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  /**
+   * Starts scrolled to the end, and keeps content that fits at the end, as a
+   * chat feed does: a reversed scroller starts at its end, without script.
+   */
+  reverse?: boolean;
+  /** Styles the outer box, which the scroller fills. */
+  class?: Marko.HTML.Div["class"];
+  /** Styles the box inside the scroller, where padding goes. */
+  contentClass?: Marko.HTML.Div["class"];
+  content: Marko.Body;
+}
+
+// A scroller that measures its scrollbar: inside it, --scrollbar-width is the
+// room a classic scrollbar takes (0 for overlay ones), for content to take
+// back out of its right-hand whitespace.
+<div class=[styles.host, input.class]>
+  <div class=[styles.scroller, input.reverse && styles.reverse]>
+    <div class=styles.measure>
+      <div class=[styles.content, input.contentClass]>
+        <${input.content}/>
+      </div>
+    </div>
+  </div>
+</div>

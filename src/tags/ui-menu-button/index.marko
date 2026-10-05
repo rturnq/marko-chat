@@ -1,0 +1,26 @@
+import styles from "./style.module.css";
+
+export interface Input extends Marko.HTML.Button {
+  /** An icon tag, such as `<icon-add/>`, shown before the content. */
+  icon?: Marko.AttrTag<{ content: Marko.Body }>;
+  current?: boolean;
+  /** Deletes or otherwise can't be undone: coloured as an error. */
+  danger?: boolean;
+  popovervalue?: string;
+}
+
+<const/{ icon, current, danger, disabled, popovervalue, ...rest }=input>
+<const/classes=[styles.item, danger && styles.danger, input.class]>
+
+<button
+  ...rest
+  data-popovervalue=popovervalue
+  class=classes
+  aria-current=current && "true"
+  disabled=current || disabled
+>
+  <if=icon>
+    <${icon.content}/>
+  </if>
+  <${input.content}/>
+</button>

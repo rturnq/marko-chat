@@ -1,0 +1,90 @@
+import styles from "./style.module.css";
+
+client let opener: string | null = null;
+
+export interface Input extends Omit<Marko.HTML.Dialog, "open"> {
+  id: string;
+  open?: string | boolean;
+  openChange?: (value: string | boolean) => void;
+  heading?: Marko.AttrTag<{ content: Marko.Body }>;
+  openedby?: string;
+}
+
+<const/{ heading, open: _open, openChange, onClose, ...rest }=input>
+<let/open:=input.open>
+
+// Stands in for the backdrop while the dialog is open but not modal, as when
+// the server renders it open to show a form's error.
+<div/$scrim class=styles.scrim aria-hidden="true"/>
+<dialog/$el
+  ...rest
+  open=!!open
+  openChange(v) {
+    open = v;
+  }
+  class=[styles.dialog, input.class]
+  closedby="any"
+  onClose(e, el) {
+    if (opener) {
+      document.getElementById(opener)?.focus();
+      opener = null;
+    }
+    onClose && onClose(e, el);
+  }
+>
+  <if=heading>
+    <div class=["eyebrow", styles.heading]>
+      <${heading.content}/>
+    </div>
+  </if>
+  <${input.content}/>
+</dialog>
+<script>
+  const el = $el();
+  const scrim = $scrim();
+  if (el.open && !el.matches(":modal")) {
+    scrim.addEventListener(
+      "click",
+      () => {
+        el.close();
+        scrim.remove();
+      },
+      { signal: $signal },
+    );
+    el.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "Escape") {
+          el.close();
+          scrim.remove();
+        }
+      },
+      { signal: $signal },
+    );
+  } else {
+    scrim.remove();
+  }
+  if (!("closedBy" in HTMLDialogElement.prototype)) {
+    el.addEventListener(
+      "click",
+      (e) => {
+        if (e.target === el) {
+          el.close();
+        }
+      },
+      { signal: $signal },
+    );
+  }
+</script>
+<script>
+  if (typeof open === "string") {
+    opener = open;
+    document.addEventListener(
+      "mousedown",
+      () => {
+        opener = null;
+      },
+      { once: true, capture: true },
+    );
+  }
+</script>

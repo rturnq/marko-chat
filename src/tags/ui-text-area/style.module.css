@@ -1,0 +1,109 @@
+@layer base, ui;
+
+@layer ui {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /*
+   * An image box (global.css): the edge is drawn inside the box (::before),
+   * so it adds no height. A 16 corner, and an 8 inset round 40 buttons with
+   * 8 corners.
+   */
+  .control {
+    --glow: rgba(255, 255, 255, 0.07);
+    --edge: var(--field-edge);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(
+        ellipse 60% 140% at 50% 150%,
+        var(--glow),
+        transparent 60%
+      ),
+      var(--field-fill);
+    box-shadow: var(--field-shadow);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: var(--edge);
+      mask:
+        linear-gradient(#000 0 0) content-box exclude,
+        linear-gradient(#000 0 0);
+      pointer-events: none;
+    }
+
+    &:focus-within {
+      --glow: rgba(0, 207, 251, 0.26);
+      --edge: var(--field-edge-focus);
+
+      box-shadow: var(--field-shadow-focus);
+    }
+
+    textarea {
+      flex-grow: 1;
+      min-width: 0;
+      margin: 0;
+      border: 0;
+      padding: var(--space-4) var(--space-4) 0;
+      background: transparent;
+      caret-color: var(--cyan);
+      font-size: 1rem;
+      line-height: 1.5rem;
+      resize: none;
+      outline: none;
+
+      /* Grows with its text, from `rows` lines to 40% of the screen, past
+         which it scrolls. Without field-sizing, `rows` sets the height. */
+      field-sizing: content;
+      min-height: calc(var(--rows) * 1.5rem + var(--space-4));
+      max-height: 40vh;
+
+      &::placeholder {
+        color: var(--muted);
+      }
+    }
+
+    /* Nothing written yet: its buttons look as they do disabled, from the
+       first paint, before the page's script disables them, so they don't
+       flash enabled while it loads. */
+    &:has(textarea:placeholder-shown) .actions > :not(.error) {
+      opacity: 0.45;
+    }
+  }
+
+  .invalid,
+  .invalid:focus-within {
+    --glow: rgba(255, 84, 103, 0.24);
+    --edge: var(--field-edge-error);
+
+    box-shadow: var(--field-shadow-error);
+
+    textarea {
+      caret-color: var(--coral);
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  }
+
+  /* At the left, in line with the text; the buttons keep to the right. */
+  .error {
+    min-width: 0;
+    margin-right: auto;
+  }
+}

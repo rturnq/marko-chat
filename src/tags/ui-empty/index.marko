@@ -1,0 +1,29 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  heading: string;
+  /** Shown large in an image box above the heading, such as a channel's `#`. */
+  symbol?: string;
+  content?: Marko.Body;
+}
+
+// Fills the main column with a short notice, such as a missing channel.
+<div class=styles.empty>
+  <if=input.symbol>
+    <div class=styles.art aria-hidden="true">
+      <span class=styles.frame/>
+      <span class=styles.symbol>${input.symbol}</span>
+      <span class=styles.floor/>
+      <span class=[styles.crop, styles.topLeft]/>
+      <span class=[styles.crop, styles.topRight]/>
+      <span class=[styles.crop, styles.bottomLeft]/>
+      <span class=[styles.crop, styles.bottomRight]/>
+    </div>
+  </if>
+  <div class=styles.copy>
+    <h2 class=styles.heading>${input.heading}</h2>
+    <p class=styles.body>
+      <${input.content}/>
+    </p>
+  </div>
+</div>

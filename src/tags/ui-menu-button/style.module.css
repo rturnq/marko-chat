@@ -1,0 +1,106 @@
+@layer base, ui;
+
+@layer ui {
+  /* 40 rows with 8 corners, inside a popover's 8 padding */
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    height: var(--control-md);
+    margin: 0;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-soft);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+
+    > svg {
+      color: var(--muted);
+    }
+
+    &:hover {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.09),
+        rgba(255, 255, 255, 0.03)
+      );
+      color: var(--text);
+
+      > svg {
+        color: var(--text);
+      }
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 2px var(--focus-color);
+    }
+
+    /* Pressed: the hover tint a touch dimmer, faintly shaded from the top */
+    &:active:not(:disabled) {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.07),
+        rgba(255, 255, 255, 0.025)
+      );
+      box-shadow: var(--pressed-shadow);
+      color: var(--text);
+
+      > svg {
+        color: var(--text);
+      }
+    }
+
+    /* The current choice is bold on a cyan tint, and can't be chosen again. */
+    &[aria-current="true"] {
+      background: linear-gradient(
+        90deg,
+        rgba(0, 207, 251, 0.16),
+        rgba(0, 115, 216, 0.04) 70%,
+        transparent
+      );
+      color: var(--text);
+      font-weight: 700;
+    }
+  }
+
+  .danger,
+  .danger > svg {
+    color: var(--text-error);
+  }
+
+  .danger:hover {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 84, 103, 0.2),
+      rgba(204, 0, 103, 0.08)
+    );
+    box-shadow: inset 0 0 0 1px rgba(255, 84, 103, 0.35);
+    color: #ffd6dc;
+
+    > svg {
+      color: #ffd6dc;
+    }
+  }
+
+  .danger:active:not(:disabled) {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 84, 103, 0.16),
+      rgba(204, 0, 103, 0.06)
+    );
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 84, 103, 0.35),
+      var(--pressed-shadow);
+    color: #ffd6dc;
+
+    > svg {
+      color: #ffd6dc;
+    }
+  }
+}

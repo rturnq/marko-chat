@@ -1,0 +1,14 @@
+import styles from "./style.module.css";
+
+export interface Input {
+  id?: string;
+  class?: Marko.HTML.P["class"];
+  content: Marko.Body;
+}
+
+<p class=[styles.alert, input.class] id=input.id role="alert">
+  <icon-error/>
+  <span>
+    <${input.content}/>
+  </span>
+</p>

@@ -1,0 +1,33 @@
+import styles from "./style.module.css";
+
+export interface IconInput {
+  /** Names the icon for screen readers; unlabelled icons are hidden. */
+  label?: string;
+}
+
+export interface Input extends IconInput {
+  /** Drawn at 12 with a 2px line, as the chevrons are. */
+  small?: boolean;
+  /** The icon's shapes. */
+  content: Marko.Body;
+}
+
+// What every icon-* tag draws its shapes in. They're written into the page
+// each time: compressed, that costs less than fetching them from a file.
+// Most are 16px in a 24 box, so a 3px stroke renders at 2px.
+<svg
+  class=styles.icon
+  width=input.small ? 12 : 16
+  height=input.small ? 12 : 16
+  viewBox=input.small ? "0 0 12 12" : "0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width=input.small ? 2 : 3
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  role=input.label ? "img" : undefined
+  aria-label=input.label
+  aria-hidden=!input.label && "true"
+>
+  <${input.content}/>
+</svg>

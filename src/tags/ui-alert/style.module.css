@@ -1,0 +1,18 @@
+@layer base, ui;
+
+@layer ui {
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    color: var(--text-error);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+
+    svg {
+      margin-block: calc((1.25rem - 16px) / 2);
+      filter: drop-shadow(0 0 5px rgba(255, 84, 103, 0.7));
+    }
+  }
+}

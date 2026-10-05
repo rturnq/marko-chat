@@ -1,0 +1,16 @@
+import styles from "../ui-section/style.module.css";
+
+export interface Input {
+  heading: string;
+  content?: Marko.Body;
+}
+
+<details class=[styles.section, styles.collapsible] open>
+  <summary class=[styles.head, styles.summary]>
+    <h2 class=["eyebrow", styles.heading]>${input.heading}</h2>
+    <icon-chevron-down/>
+  </summary>
+  <div class=styles.body>
+    <${input.content}/>
+  </div>
+</details>
