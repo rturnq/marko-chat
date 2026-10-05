@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <radialGradient id="blue" cx="0" cy="0" r="1">
+      <stop offset="0" stop-color="#0073d8" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#0073d8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="magenta" cx="1" cy="1" r="1">
+      <stop offset="0" stop-color="#cc0067" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#cc0067" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="bars">
+      <rect x="2" y="6" width="4" height="20" rx="2"/>
+      <rect x="10" y="6" width="4" height="20" rx="2"/>
+      <rect x="18" y="6" width="4" height="20" rx="2"/>
+      <rect x="26" y="6" width="4" height="20" rx="2"/>
+    </clipPath>
+    <clipPath id="light">
+      <polygon points="2,6 30,6 18,16 14,16"/>
+    </clipPath>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#06070d"/>
+  <rect width="32" height="32" rx="7" fill="url(#blue)"/>
+  <rect width="32" height="32" rx="7" fill="url(#magenta)"/>
+  <g clip-path="url(#bars)">
+    <rect x="2" y="6" width="4" height="20" fill="#0073d8"/>
+    <rect x="10" y="6" width="4" height="20" fill="#00b068"/>
+    <rect x="18" y="6" width="4" height="20" fill="#fc5c00"/>
+    <rect x="26" y="6" width="4" height="20" fill="#cc0067"/>
+    <g clip-path="url(#light)">
+      <rect x="2" y="6" width="4" height="20" fill="#00cffb"/>
+      <rect x="10" y="6" width="4" height="20" fill="#7ced64"/>
+      <rect x="18" y="6" width="4" height="20" fill="#ffd100"/>
+      <rect x="26" y="6" width="4" height="20" fill="#ff5467"/>
+    </g>
+  </g>
+</svg>
