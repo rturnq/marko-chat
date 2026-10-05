@@ -1,0 +1,34 @@
+import { href } from "../../utils/url";
+import styles from "./style.module.css";
+
+<app-session/error="POST:/"/>
+// A `?to=` return URL carries over to the signup page.
+<const/to=$global.url.searchParams.get("to") ?? undefined>
+// Back with a name filled in, it's the password that needs typing.
+<const/focusPassword=!!error?.values?.name && !error.fields?.name>
+
+<h1>Log in</h1>
+// Posts to the current URL, so a `?to=` return URL survives the login.
+<form class=styles.form method="post">
+  <ui-text-field
+    label="Name"
+    name="name"
+    error=error?.fields?.name
+    value=error?.values?.name
+    required
+    autocomplete="username"
+    autofocus=!focusPassword
+  />
+  // A wrong name or password is reported here, without saying which.
+  <ui-text-field
+    label="Password"
+    type="password"
+    name="password"
+    error=(error && (error.fields ? error.fields.password : error.message))
+    required
+    autocomplete="current-password"
+    autofocus=focusPassword
+  />
+  <ui-button type="submit" variant="primary">Log in</ui-button>
+  <a class=styles.signup href=href(Run.href("/signup"), { to })>Sign up</a>
+</form>
