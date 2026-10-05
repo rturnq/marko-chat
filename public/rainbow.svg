@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <!--
+    The header's rainbow. It has no viewBox, so it's laid out at whatever size
+    it's drawn: twice the header's height, the header being the top half and
+    the glow falling into the bottom one. Every length that depends on that
+    size is a percentage in an attribute, which is what all browsers keep up
+    to date as the size changes.
+  -->
+  <defs>
+    <linearGradient id="rainbow">
+      <stop offset="0" stop-color="#00cffb" stop-opacity="0"/>
+      <stop offset="0.14" stop-color="#00cffb"/>
+      <stop offset="0.38" stop-color="#7ced64"/>
+      <stop offset="0.62" stop-color="#ffd100"/>
+      <stop offset="0.86" stop-color="#ff5467"/>
+      <stop offset="1" stop-color="#ff5467" stop-opacity="0"/>
+    </linearGradient>
+    <!-- The glow's rainbow starts 40 in from each end. Its space starts 40 out. -->
+    <linearGradient id="glow-rainbow" href="#rainbow" gradientUnits="userSpaceOnUse" x1="80" x2="100%"/>
+    <pattern id="lines" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="1" height="4" fill="#fff" fill-opacity="0.045"/>
+    </pattern>
+    <!-- Strongest in the middle of the line, gone 80% of the way out -->
+    <radialGradient id="middle" cx="0.5" cy="1" r="1" gradientTransform="translate(0.5 1) scale(0.4 1.2) translate(-0.5 -1)">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.8" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="lines-mask" maskContentUnits="objectBoundingBox">
+      <rect width="1" height="1" fill="url(#middle)"/>
+    </mask>
+    <!-- Rising from the line, gone 90% of the way up -->
+    <linearGradient id="rise" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.9" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="wash-mask" maskContentUnits="objectBoundingBox">
+      <rect width="1" height="1" fill="url(#rise)"/>
+    </mask>
+    <filter id="blur" filterUnits="userSpaceOnUse" x="0" y="-40" width="100%" height="80" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <!-- The header: the line's light, a rainbow wash rising from it over fine vertical lines -->
+  <svg height="50%">
+    <rect width="100%" height="100%" fill="url(#lines)" mask="url(#lines-mask)"/>
+    <rect width="100%" height="100%" fill="url(#rainbow)" opacity="0.26" mask="url(#wash-mask)"/>
+  </svg>
+  <!-- From the header's bottom edge: the line's glow, then the line -->
+  <svg x="-40" y="50%" overflow="visible">
+    <rect x="80" y="-4" width="100%" height="8" fill="url(#glow-rainbow)" filter="url(#blur)" opacity="0.55"/>
+  </svg>
+  <svg y="50%" overflow="visible">
+    <rect y="-1.5" width="100%" height="1.5" fill="url(#rainbow)"/>
+  </svg>
+</svg>
