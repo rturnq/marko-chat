@@ -62,7 +62,7 @@ function secret(): string {
 // Built on the first request, once the environment is to hand.
 let withSession: Middleware<any> | undefined;
 
-const sessionMiddleware: Middleware<any> = (ctx, next) => {
+const sessionMiddleware: Middleware<any> = async (ctx, next) => {
   withSession ??= session(
     createCookie("$", {
       httpOnly: true,
@@ -74,7 +74,19 @@ const sessionMiddleware: Middleware<any> = (ctx, next) => {
     }),
     storage,
   );
-  return withSession(ctx, next);
+  // A WebSocket upgrade (101) skips the cookie: the session writes it by
+  // copying the response, and a copy loses the socket. The session sees a
+  // stand-in instead.
+  let upgrade: Response | undefined;
+  const response = await withSession(ctx, async () => {
+    const response = await next();
+    if (response.status !== 101) {
+      return response;
+    }
+    upgrade = response;
+    return new Response(null, { status: 204 });
+  });
+  return upgrade ?? response;
 };
 
 export default sessionMiddleware;

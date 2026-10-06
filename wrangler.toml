@@ -20,3 +20,14 @@ binding = "DB"
 database_name = "marko-chat"
 database_id = "d6790b71-d8c4-4e78-a03f-f5efc39cccd0"
 migrations_dir = "src/server/migrations"
+
+# One object for the whole chat: it holds every open chat page's WebSocket
+# and tells them all when data changes.
+[[durable_objects.bindings]]
+name = "UPDATES"
+class_name = "UpdatesObject"
+
+# SQLite-backed class: required on the free plan, and the recommended kind.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UpdatesObject"]

@@ -1,0 +1,116 @@
+// Keeps a WebSocket open to /ws for the life of the page, and reloads the
+// page when the data behind it changes. Each message is the data's version:
+// the first is noted, and any other means the data changed, including after a
+// reconnect that missed a change. Once the page has started to navigate away,
+// updates are ignored so as not to take over that navigation.
+<script>
+  const url = new URL(Run.href("/ws"), location.href);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  let socket: WebSocket | undefined;
+  let seen: number | undefined;
+  let retries = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let pingTimer: ReturnType<typeof setTimeout> | undefined;
+  let leaving = false;
+
+  const connect = () => {
+    if (socket || leaving || $signal.aborted) return;
+    clearTimeout(retryTimer);
+    const current = (socket = new WebSocket(url));
+    current.onmessage = ({ data }) => {
+      if (data === "pong") {
+        clearTimeout(pingTimer);
+        return;
+      }
+      let version: unknown;
+      try {
+        ({ version } = JSON.parse(data));
+      } catch {
+        return;
+      }
+      if (typeof version !== "number") return;
+      retries = 0;
+      if (seen !== undefined && version !== seen && !leaving) {
+        reload();
+      }
+      seen = version;
+    };
+    current.onclose = () => {
+      if (socket !== current) return;
+      socket = undefined;
+      clearTimeout(pingTimer);
+      if (!leaving && !$signal.aborted) {
+        // 1s, 2s, 4s … up to 30s between attempts.
+        retryTimer = setTimeout(connect, Math.min(30_000, 1000 * 2 ** retries++));
+      }
+    };
+  };
+
+  const leave = () => {
+    leaving = true;
+    clearTimeout(retryTimer);
+    socket?.close();
+  };
+
+  // Clicks a hidden link to the page's current URL, so the reload keeps
+  // whatever the page has moved to since it rendered, such as an edit opened
+  // in place. Without the fragment: a link to the same URL with one only
+  // scrolls.
+  const reload = () => {
+    leave();
+    const url = new URL(location.href);
+    url.hash = "";
+    const link = document.createElement("a");
+    link.href = url.href;
+    link.hidden = true;
+    document.body.appendChild(link);
+    link.click();
+  };
+
+  // Back in view or back online: reconnect now, or check that an open socket
+  // still answers, as a phone's can die quietly while it sleeps.
+  const check = () => {
+    if (leaving || document.visibilityState !== "visible") return;
+    if (!socket) {
+      retries = 0;
+      connect();
+    } else if (socket.readyState === WebSocket.OPEN) {
+      socket.send("ping");
+      clearTimeout(pingTimer);
+      pingTimer = setTimeout(() => socket?.close(), 5000);
+    }
+  };
+
+  const options = { signal: $signal };
+  // Leaving: a link, a form, a reload, or back and forward. Changes within the
+  // page, such as an edit opened in place, and downloads don't unload it, and
+  // a dialog's form or a link to a new tab doesn't navigate it at all. Where
+  // the Navigation API is missing, the page never stops listening.
+  window.navigation?.addEventListener(
+    "navigate",
+    (e) => {
+      if (!e.destination.sameDocument && e.downloadRequest === null) leave();
+    },
+    options,
+  );
+  // Restored from the back-forward cache: the page left, and has come back.
+  addEventListener(
+    "pageshow",
+    (e) => {
+      if (e.persisted) {
+        leaving = false;
+        check();
+      }
+    },
+    options,
+  );
+  addEventListener("online", check, options);
+  document.addEventListener("visibilitychange", check, options);
+  $signal.addEventListener("abort", () => {
+    clearTimeout(retryTimer);
+    clearTimeout(pingTimer);
+    socket?.close();
+  });
+
+  connect();
+</script>

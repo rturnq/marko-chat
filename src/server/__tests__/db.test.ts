@@ -179,3 +179,30 @@ describe("users", () => {
     expect(await db.getLogin("nobody")).toBeUndefined();
   });
 });
+
+describe("changes", () => {
+  it("reports writes that changed something, and not reads or no-ops", async () => {
+    let changes = 0;
+    const tracked = new Db(database.d1, () => changes++);
+    await tracked.getChannels();
+    await tracked.getMessages("test");
+    expect(changes).toBe(0);
+
+    const user = await tracked.createUser("ada", "hash");
+    expect(changes).toBe(1);
+    await tracked.createUser("ada", "taken");
+    expect(changes).toBe(1);
+
+    await tracked.createMessage("c1", user!.id, "Hello");
+    expect(changes).toBe(2);
+
+    await tracked.addReaction("m01", user!.id, "👍");
+    expect(changes).toBe(3);
+    await tracked.addReaction("m01", user!.id, "👍");
+    expect(changes).toBe(3);
+    await tracked.removeReaction("m01", user!.id, "👍");
+    expect(changes).toBe(4);
+    await tracked.removeReaction("m01", user!.id, "👍");
+    expect(changes).toBe(4);
+  });
+});

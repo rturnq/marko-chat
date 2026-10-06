@@ -103,9 +103,20 @@ const MESSAGE_REACTIONS = `(
 /** The app's queries, over a D1 database. */
 export class Db {
   #d1: D1Database;
+  #onChange: (() => void) | undefined;
 
-  constructor(d1: D1Database) {
+  /** `onChange` is called after each write that changed something. */
+  constructor(d1: D1Database, onChange?: () => void) {
     this.#d1 = d1;
+    this.#onChange = onChange;
+  }
+
+  /** Reports a write, when it changed something, and passes its result on. */
+  #changed<T>(result: T): T {
+    if (result !== undefined) {
+      this.#onChange?.();
+    }
+    return result;
   }
 
   #prepare(sql: string, params: SqlValue[]) {
@@ -120,11 +131,12 @@ export class Db {
     return (await this.#prepare(sql, params).all<Row>()).results;
   }
 
-  /** Runs the statements in one transaction. */
+  /** Runs the statements in one transaction, with how many rows each changed. */
   async #batch(...statements: SqlStatement[]) {
-    await this.#d1.batch(
+    const results = await this.#d1.batch(
       statements.map(([sql, ...params]) => this.#prepare(sql, params)),
     );
+    return results.map(({ meta }) => ({ changes: meta.changes ?? 0 }));
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -180,17 +192,19 @@ export class Db {
     name: string,
     passwordHash: string,
   ): Promise<User | undefined> {
-    return this.#first<UserRow>(
-      `
+    return this.#changed(
+      await this.#first<UserRow>(
+        `
       INSERT INTO users (id, name, display_name, password_hash, status, created_at)
       VALUES (?1, ?2, ?2, ?3, ${UserStatus.Active}, ?4)
       ON CONFLICT (name) DO NOTHING
       RETURNING ${USER_COLUMNS}
       `,
-      shortId(),
-      name,
-      passwordHash,
-      Date.now(),
+        shortId(),
+        name,
+        passwordHash,
+        Date.now(),
+      ),
     );
   }
 
@@ -198,10 +212,12 @@ export class Db {
     id: string,
     status: UserStatus,
   ): Promise<User | undefined> {
-    return this.#first<UserRow>(
-      `UPDATE users SET status = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
-      status,
-      id,
+    return this.#changed(
+      await this.#first<UserRow>(
+        `UPDATE users SET status = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
+        status,
+        id,
+      ),
     );
   }
 
@@ -254,7 +270,7 @@ export class Db {
       }
       throw err;
     }
-    return channel!;
+    return this.#changed(channel!);
   }
 
   /**
@@ -424,7 +440,7 @@ export class Db {
       text,
       Date.now(),
     );
-    return toMessage(row!);
+    return this.#changed(toMessage(row!));
   }
 
   async updateMessage(
@@ -449,7 +465,7 @@ export class Db {
     if (!row) {
       throw new Error(`Unable to edit message`);
     }
-    return toMessage(row);
+    return this.#changed(toMessage(row));
   }
 
   async deleteMessage(messageId: string, authorId: string): Promise<Message> {
@@ -467,7 +483,7 @@ export class Db {
     if (!row) {
       throw new Error(`Unable to delete message`);
     }
-    return toMessage(row);
+    return this.#changed(toMessage(row));
   }
 
   async addReaction(
@@ -476,7 +492,7 @@ export class Db {
     symbol: string,
   ): Promise<void> {
     const createdAt = Date.now();
-    await this.#batch(
+    const results = await this.#batch(
       [
         `
         INSERT INTO reactions (id, message_id, symbol, created_at)
@@ -500,6 +516,9 @@ export class Db {
         createdAt,
       ],
     );
+    if (results.some(({ changes }) => changes > 0)) {
+      this.#onChange?.();
+    }
   }
 
   async removeReaction(
@@ -507,7 +526,7 @@ export class Db {
     userId: string,
     symbol: string,
   ): Promise<void> {
-    await this.#batch(
+    const results = await this.#batch(
       [
         `
         DELETE FROM reaction_users
@@ -530,6 +549,9 @@ export class Db {
         symbol,
       ],
     );
+    if (results.some(({ changes }) => changes > 0)) {
+      this.#onChange?.();
+    }
   }
 }
 
