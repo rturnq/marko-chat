@@ -4,8 +4,8 @@ Chat app MPA: a stub on [Marko 6](https://markojs.com) and [Marko Run](https://m
 
 Pages are plain forms that post and redirect back, and work without client JS. Where it runs, script makes them
 nicer: Enter sends a message or saves an edit (Shift+Enter adds a line), Escape cancels an edit, Send and Save
-stay disabled while there's nothing to send, editing opens in place, and a
-dialog the server rendered open becomes a modal.
+stay disabled while there's nothing to send, editing opens in place, each channel's draft message, and a draft edit,
+survive a reload until they're sent, saved, cancelled or deleted, and a dialog the server rendered open becomes a modal.
 
 The app runs on Cloudflare Workers, with its data in a D1 database. Static assets are served by the Worker's
 assets binding. `pnpm dev` runs the Worker locally against a local D1, and each test gets a fresh in-memory D1

@@ -5,7 +5,11 @@ export interface Input {
 }
 
 <app-session/error="POST:/channels/$slug"/>
-<let/value=(error && error.values?.text) || "">
+// Each channel's draft survives a reload or a visit elsewhere, until it's sent.
+<ui-session-storage/value
+  key=`composer.${input.channelSlug}.text`
+  value=(error && error.values?.text) || ""
+/>
 <let/mounted=false>
 <script>mounted=true</script>
 
@@ -13,6 +17,11 @@ export interface Input {
   class=styles.composer
   method="post"
   action=Run.href("/channels/$slug", { params: { slug: input.channelSlug } })
+  onSubmit() {
+    // Drops the stored draft, but leaves the text in place in case the post
+    // fails; the page that comes back has the composer's new state.
+    value = undefined;
+  }
 >
   <ui-text-area
     label="Message"
