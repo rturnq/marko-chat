@@ -11,6 +11,11 @@ export interface Input {
   onCancelEdit?: () => void;
 }
 
+/** Where an unsaved edit of a message is kept, in sessionStorage. */
+export function editDraftKey(messageId: string) {
+  return `edit.${messageId}.text`;
+}
+
 <const/{ message }=input>
 <let/mounted=false>
 <script>mounted=true</script>
@@ -27,11 +32,18 @@ export interface Input {
       // by the server for the message a failed edit comes back to, and never
       // again once the form has closed.
       <app-session/error="POST:/messages/$id"/>
-      <let/value=error ? error.values?.text || "" : message.text>
+      // A draft of the edit survives a reload, until it's saved or cancelled.
+      <ui-session-storage/value
+        key=editDraftKey(message.id)
+        value=(error ? error.values?.text || "" : message.text)
+      />
       <form
         class=styles.edit
         method="post"
         action=Run.href("/messages/$id", { params: { id: message.id } })
+        onSubmit() {
+          value = undefined;
+        }
       >
         <input type="hidden" name="returnUrl" value=input.returnUrl>
         <ui-text-area
@@ -67,6 +79,7 @@ export interface Input {
               size="medium"
               label="Cancel"
               onClick(e) {
+                value = undefined;
                 if (input.onCancelEdit) {
                   e.preventDefault();
                   input.onCancelEdit();

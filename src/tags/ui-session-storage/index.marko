@@ -1,0 +1,60 @@
+export interface Input<T> {
+  /** The sessionStorage key the value is kept under. */
+  key: string;
+  /** The value until one is loaded from storage, and the one the server renders. */
+  value: T;
+}
+
+static function store(key: string, value: unknown) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage is full or blocked: the value still changes, it just won't last.
+  }
+}
+
+/** Removes what a `ui-session-storage` keeps under `key`, from anywhere. */
+export function forgetSessionValue(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Storage is blocked, so there's nothing to remove.
+  }
+}
+
+// State that outlives a reload or a visit to another page in the same tab:
+// `input.value` until the page's script loads what sessionStorage holds under
+// `input.key`. Writing a value stores it. Writing undefined only removes the
+// stored item and leaves the value as it is, so a form can clear its draft as
+// it submits without emptying itself. Writing the initial value back removes
+// the item too, as there's nothing then to restore.
+<let/value=input.value>
+<script>
+  let stored: string | null = null;
+  try {
+    stored = sessionStorage.getItem(input.key);
+  } catch {
+    // Storage is blocked: keep the initial value.
+  }
+  if (stored !== null) {
+    try {
+      value = JSON.parse(stored);
+    } catch {
+      forgetSessionValue(input.key);
+    }
+  }
+</script>
+<return=value
+  valueChange(next: T | undefined) {
+    if (next === undefined) {
+      forgetSessionValue(input.key);
+      return;
+    }
+    value = next;
+    if (next === input.value) {
+      forgetSessionValue(input.key);
+    } else {
+      store(input.key, next);
+    }
+  }
+>

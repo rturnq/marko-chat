@@ -1,6 +1,8 @@
 import type { MessagePage } from "../../server/db";
 import { formatDay, isoDay } from "../../utils/date";
 import { href } from "../../utils/url";
+import { editDraftKey } from "../app-own-message/index.marko";
+import { forgetSessionValue } from "../ui-session-storage/index.marko";
 import styles from "./style.module.css";
 
 export interface Input {
@@ -125,6 +127,9 @@ export interface Input {
       e.preventDefault();
       editId = messageId;
       history.replaceState(null, "", href(input.url, { edit: messageId }));
+    } else if (command === "delete") {
+      // The message is going, so an unsaved edit of it has nothing to go to.
+      forgetSessionValue(editDraftKey(messageId));
     }
   }
 />
