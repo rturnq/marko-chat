@@ -1,4 +1,4 @@
-/* The feed, with the refresh button floating over its top right */
+/* The feed, filling the column */
 .list {
   position: relative;
   display: flex;
@@ -9,18 +9,6 @@
 
 .feed {
   flex-grow: 1;
-}
-
-/* A glass chip, frosted and darkened so it reads over the messages under it.
-   24 down, level with the new channel button in the channels column. */
-.refresh {
-  position: absolute;
-  top: var(--space-6);
-  right: var(--feed-gutter, 1.5rem);
-  z-index: 1;
-  background-color: rgba(12, 14, 24, 0.6);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
 }
 
 /* A classic scrollbar comes out of the feed's right-hand gutter. */

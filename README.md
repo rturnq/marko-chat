@@ -8,8 +8,9 @@ stay disabled while there's nothing to send, editing opens in place, each channe
 survive a reload until they're sent, saved, cancelled or deleted, and a dialog the server rendered open becomes a modal.
 
 The app runs on Cloudflare Workers, with its data in a D1 database. Static assets are served by the Worker's
-assets binding. `pnpm dev` runs the Worker locally against a local D1, and each test gets a fresh in-memory D1
-from the same local runtime.
+assets binding. An open chat page keeps a WebSocket to a Durable Object, which tells it whenever anything changes,
+and the page reloads. `pnpm dev` runs
+the Worker locally against a local D1, and each test gets a fresh in-memory D1 from the same local runtime.
 
 People sign up with a name and password and log in with them. Passwords are stored as scrypt hashes, each with
 its own random salt (`src/server/password.ts`). A new name is refused if it matches anyone's name or display

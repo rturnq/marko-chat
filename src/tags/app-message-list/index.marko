@@ -26,17 +26,6 @@ export interface Input {
 </script>
 
 <div class=styles.list>
-  // Reloads the page to show new messages: without script, the feed only
-  // changes when the page does.
-  <ui-link-button
-    class=styles.refresh
-    href=href(input.url, {})
-    label="Refresh"
-  >
-    <@icon>
-      <icon-refresh/>
-    </@icon>
-  </ui-link-button>
   // Reversed, so the feed starts scrolled to its newest message.
   <ui-scroll-area class=styles.feed contentClass=styles.content reverse>
     <try>
