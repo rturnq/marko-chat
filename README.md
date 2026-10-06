@@ -5,17 +5,20 @@ Chat app MPA: a stub on [Marko 6](https://markojs.com) and [Marko Run](https://m
 Pages are plain forms that post and redirect back, and work without client JS. Where it runs, script makes them
 nicer: Enter sends a message or saves an edit (Shift+Enter adds a line), Escape cancels an edit, Send and Save
 stay disabled while there's nothing to send, editing opens in place, and a
-dialog the server rendered open becomes a modal. Data lives in SQLite (Node's built-in `node:sqlite`) at
-`data/chat.db`; set `DATABASE_PATH` to use another file.
+dialog the server rendered open becomes a modal.
 
-People sign up with a name and password and log in with them. Passwords are stored as Argon2id hashes, each with
-its own random salt, through `hash-wasm`, which runs on Cloudflare Workers as well as Node
-(`src/server/password.ts`). A new name is refused if it matches anyone's name or display
+The app runs on Cloudflare Workers, with its data in a D1 database. Static assets are served by the Worker's
+assets binding. `pnpm dev` runs the Worker locally against a local D1, and each test gets a fresh in-memory D1
+from the same local runtime.
+
+People sign up with a name and password and log in with them. Passwords are stored as scrypt hashes, each with
+its own random salt (`src/server/password.ts`). A new name is refused if it matches anyone's name or display
 name in any case, so nobody can pass as someone else. Users from before passwords have none and can't log in.
 
-Handlers query through `ctx.db` (`src/server/db.ts`), which the root middleware adds without connecting: the
-connection is made by the first query and awaited by every query. Queries go through a small async `Driver`
-interface shaped like Cloudflare D1's; `src/server/sqlite.ts` implements it for `node:sqlite`.
+Handlers query through `ctx.db` (`src/server/db.ts`), over the D1 database the Worker entry `src/index.ts`
+hands the routes on `ctx.platform`. The entry defines that platform's type, and the adapter
+(`src/cloudflare-adapter/`, kept to be published as a package) makes it marko-run's. Tests live in `__tests__` folders beside what they
+test.
 
 ## Tags
 
@@ -36,14 +39,16 @@ Each tag is a folder named after it: `src/tags/<tag>/index.marko`, with its styl
 
 ## Migrations
 
-Schema changes and seed data are numbered `.sql` files in `src/server/migrations/`. On startup, every file not
-yet recorded in the `migrations` table is applied in name order, each in its own transaction. Add a new file
-rather than editing one that has already run.
+Schema changes and seed data are numbered `.sql` files in `src/server/migrations/`. `pnpm db:migrate` applies
+the ones not yet applied to the local database, in name order, and `pnpm db:migrate --remote` to the deployed
+one; `pnpm db:reset` starts the local database over. The tests apply them to each test's database themselves.
+Add a new file rather than editing one that has already run.
 
 ## Run locally
 
 ```bash
 pnpm install
+pnpm db:migrate
 pnpm dev
 ```
 
@@ -52,4 +57,14 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm preview
+```
+
+## Deploy
+
+Once, with `wrangler login` done: `pnpm provision` creates the D1 database and writes its id into
+`wrangler.toml`, `pnpm db:migrate --remote` sets up its schema, and `wrangler secret put SESSION_SECRET` gives
+the session cookie its key. Then, and after every change:
+
+```bash
+pnpm deploy
 ```

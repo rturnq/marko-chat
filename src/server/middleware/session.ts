@@ -1,6 +1,7 @@
 import { createCookie } from "@remix-run/cookie";
 import { createCookieSessionStorage } from "@remix-run/session/cookie-storage";
 import { session } from "@remix-run/session-middleware";
+import type { Middleware } from "@remix-run/fetch-router";
 import type { Session as RemixSession } from "@remix-run/session";
 import type { GetContext } from "@marko/run";
 import type { FormError } from "../utils/validation";
@@ -21,7 +22,6 @@ export type SessionData = SessionValueData & SessionFlashData;
 
 export type Session = RemixSession<SessionValueData, SessionFlashData>;
 
-
 declare module "@marko/run" {
   interface Context {
     session: Session;
@@ -39,18 +39,42 @@ declare global {
 }
 
 const storage = createCookieSessionStorage();
-// Never Secure, for now, while the app is only served over plain HTTP:
-// Safari drops a Secure cookie set over HTTP, even from localhost. Turn this
-// back on (or leave it unset, for Secure over HTTPS) before deploying.
-const cookie = createCookie("$", {
-  httpOnly: true,
-  maxAge: 60 * 60 * 24 * 30,
-  path: "/",
-  sameSite: "Lax",
-  secrets: [
-    process.env.SESSION_SECRET ?? "development-only-change-before-deploying",
-  ],
-  secure: false,
-});
 
-export default session(cookie, storage);
+// Dev and preview serve over plain HTTP, where a Secure cookie is dropped
+// (Safari drops one set over HTTP, even from localhost). Both are build-time
+// constants, so a deploy build always sets it.
+const secure = !import.meta.env.DEV && !import.meta.env.VITE_PREVIEW;
+
+// The cookie's key: `SESSION_SECRET` in the environment, which on Cloudflare
+// is `wrangler secret put SESSION_SECRET` (or `.dev.vars` locally). Dev and
+// preview builds fall back to a fixed key; a deploy build refuses to run
+// without one.
+function secret(): string {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (import.meta.env.DEV || import.meta.env.VITE_PREVIEW) {
+    return "development-only-change-before-deploying";
+  }
+  throw new Error(
+    "SESSION_SECRET is not set: run `wrangler secret put SESSION_SECRET`",
+  );
+}
+
+// Built on the first request, once the environment is to hand.
+let withSession: Middleware<any> | undefined;
+
+const sessionMiddleware: Middleware<any> = (ctx, next) => {
+  withSession ??= session(
+    createCookie("$", {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+      sameSite: "Lax",
+      secrets: [secret()],
+      secure,
+    }),
+    storage,
+  );
+  return withSession(ctx, next);
+};
+
+export default sessionMiddleware;

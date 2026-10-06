@@ -1,0 +1,47 @@
+diff --git a/dist/adapter/load-dev-worker.mjs b/dist/adapter/load-dev-worker.mjs
+index 838d1e030a966d1c04a779f91e80f948c63f718f..ddad945645c7a656df795f0e13ba94fc16b47db9 100644
+--- a/dist/adapter/load-dev-worker.mjs
++++ b/dist/adapter/load-dev-worker.mjs
+@@ -28,7 +28,7 @@ async function start(entry, config) {
+     const adapter = await resolveAdapter(resolvedConfig);
+     const plugins =
+       (adapter.plugins &&
+-        (await adapter.plugins({ root: config.root, command: "dev" }))) ||
++        (await adapter.plugins({ root: config.root, command: "dev", entry }))) ||
+       [];
+ 
+     if (config.plugins.some((plugin) => plugin.name === "marko-run-vite:pre")) {
+diff --git a/dist/cli/index.mjs b/dist/cli/index.mjs
+index 3a8da6e610bbaf6e6d9dd9fecb0084fc804604c3..ac201b6471ff9bb528cc2153f1f76d8a7aec88ef 100755
+--- a/dist/cli/index.mjs
++++ b/dist/cli/index.mjs
+@@ -3380,7 +3380,7 @@ async function dev(entry, cwd, configFile, port, envFile, args = []) {
+   if (!entry) {
+     entry = await ((_a = adapter.getEntryFile) == null ? void 0 : _a.call(adapter));
+   }
+-  let plugins = adapter.plugins && await adapter.plugins({ root, command: "dev" });
++  let plugins = adapter.plugins && await adapter.plugins({ root, command: "dev", entry });
+   if (!isPluginIncluded(resolvedConfig)) {
+     plugins = (plugins || []).concat(markoRun());
+   }
+@@ -3421,7 +3421,7 @@ async function build(entry, cwd, configFile, outDir, envFile) {
+   if (envFile) {
+     envFile = path11.resolve(cwd, envFile);
+   }
+-  let plugins = adapter.plugins && await adapter.plugins({ root, command: "build" });
++  let plugins = adapter.plugins && await adapter.plugins({ root, command: "build", entry });
+   if (!isPluginIncluded(resolvedConfig)) {
+     plugins = (plugins || []).concat(markoRun());
+   }
+diff --git a/dist/vite/types.d.ts b/dist/vite/types.d.ts
+index f73deea64961ee0e689b1cd7ba59035fa0606c87..3232196d44821d15192cae9bd3d0d4c5b49f5d3d 100644
+--- a/dist/vite/types.d.ts
++++ b/dist/vite/types.d.ts
+@@ -26,6 +26,7 @@ export interface Adapter {
+     plugins?(event: {
+         root: string;
+         command: "dev" | "build";
++        entry: string | undefined;
+     }): Promise<Plugin[] | undefined> | Plugin[] | undefined;
+     configure?(config: AdapterConfig): void;
+     pluginOptions?(options: Options): Promise<Options> | Options | undefined;

@@ -1,5 +1,3 @@
-import { CHARS, shortId } from "./ids";
-
 export const enum UserStatus {
   Offline = 0,
   Active = 1,
@@ -65,15 +63,8 @@ export interface MessagePage {
   newer: string | undefined;
 }
 
-export type SqlValue = null | number | string;
-export type SqlStatement = [sql: string, ...params: SqlValue[]];
-
-export interface Driver {
-  first<Row>(sql: string, ...params: SqlValue[]): Promise<Row | undefined>;
-  all<Row>(sql: string, ...params: SqlValue[]): Promise<Row[]>;
-  run(sql: string, ...params: SqlValue[]): Promise<{ changes: number }>;
-  batch(...statements: SqlStatement[]): Promise<{ changes: number }[]>;
-}
+type SqlValue = null | number | string;
+type SqlStatement = [sql: string, ...params: SqlValue[]];
 
 const USER_COLUMNS = "id, name, display_name AS displayName, status";
 const CHANNEL_COLUMNS = "id, owner_id AS ownerId, slug, name";
@@ -109,37 +100,42 @@ const MESSAGE_REACTIONS = `(
   WHERE r.message_id = messages.id
 ) AS reactions`;
 
+/** The app's queries, over a D1 database. */
 export class Db {
-  #connect: () => Driver | Promise<Driver>;
-  #driver: Driver | Promise<Driver> | undefined;
+  #d1: D1Database;
 
-  constructor(connect: () => Driver | Promise<Driver>) {
-    this.#connect = connect;
+  constructor(d1: D1Database) {
+    this.#d1 = d1;
   }
 
-  #connection() {
-    return (this.#driver ??= this.#connect());
+  #prepare(sql: string, params: SqlValue[]) {
+    return this.#d1.prepare(sql).bind(...params);
+  }
+
+  async #first<Row>(sql: string, ...params: SqlValue[]) {
+    return (await this.#prepare(sql, params).first<Row>()) ?? undefined;
+  }
+
+  async #all<Row>(sql: string, ...params: SqlValue[]) {
+    return (await this.#prepare(sql, params).all<Row>()).results;
+  }
+
+  /** Runs the statements in one transaction. */
+  async #batch(...statements: SqlStatement[]) {
+    await this.#d1.batch(
+      statements.map(([sql, ...params]) => this.#prepare(sql, params)),
+    );
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    const db = await this.#connection();
-    return db.first<UserRow>(
+    return this.#first<UserRow>(
       `SELECT ${USER_COLUMNS} FROM users WHERE id = ?`,
       id,
     );
   }
 
-  async getUserByName(name: string): Promise<User | undefined> {
-    const db = await this.#connection();
-    return db.first<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE name = ?`,
-      name,
-    );
-  }
-
   async getOnlineMembers(): Promise<User[]> {
-    const db = await this.#connection();
-    return db.all<UserRow>(`
+    return this.#all<UserRow>(`
       SELECT ${USER_COLUMNS} FROM users
       WHERE status > ${UserStatus.Offline}
       ORDER BY display_name COLLATE NOCASE
@@ -147,8 +143,7 @@ export class Db {
   }
 
   async getOfflineMembers(): Promise<User[]> {
-    const db = await this.#connection();
-    return db.all<UserRow>(`
+    return this.#all<UserRow>(`
       SELECT ${USER_COLUMNS} FROM users
       WHERE status = ${UserStatus.Offline}
       ORDER BY display_name COLLATE NOCASE
@@ -159,8 +154,7 @@ export class Db {
   async getLogin(
     name: string,
   ): Promise<{ id: string; passwordHash: string | null } | undefined> {
-    const db = await this.#connection();
-    return db.first(
+    return this.#first(
       `SELECT id, password_hash AS passwordHash FROM users WHERE name = ?`,
       name,
     );
@@ -171,8 +165,7 @@ export class Db {
    * name already, in any case, so nobody can pass as someone else.
    */
   async isNameTaken(name: string): Promise<boolean> {
-    const db = await this.#connection();
-    return !!(await db.first(
+    return !!(await this.#first(
       `
       SELECT 1 FROM users
       WHERE name = ?1 COLLATE NOCASE OR display_name = ?1 COLLATE NOCASE
@@ -187,8 +180,7 @@ export class Db {
     name: string,
     passwordHash: string,
   ): Promise<User | undefined> {
-    const db = await this.#connection();
-    return db.first<UserRow>(
+    return this.#first<UserRow>(
       `
       INSERT INTO users (id, name, display_name, password_hash, status, created_at)
       VALUES (?1, ?2, ?2, ?3, ${UserStatus.Active}, ?4)
@@ -202,24 +194,11 @@ export class Db {
     );
   }
 
-  async updateUserDisplayName(
-    id: string,
-    displayName: string,
-  ): Promise<User | undefined> {
-    const db = await this.#connection();
-    return db.first<UserRow>(
-      `UPDATE users SET display_name = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
-      displayName,
-      id,
-    );
-  }
-
   async updateUserStatus(
     id: string,
     status: UserStatus,
   ): Promise<User | undefined> {
-    const db = await this.#connection();
-    return db.first<UserRow>(
+    return this.#first<UserRow>(
       `UPDATE users SET status = ? WHERE id = ? RETURNING ${USER_COLUMNS}`,
       status,
       id,
@@ -227,37 +206,21 @@ export class Db {
   }
 
   async getChannels(): Promise<Channel[]> {
-    const db = await this.#connection();
-    return db.all<ChannelRow>(
+    return this.#all<ChannelRow>(
       `SELECT ${CHANNEL_COLUMNS} FROM channels ORDER BY created_at`,
     );
   }
 
   async getDefaultChannel(): Promise<Channel | undefined> {
-    const db = await this.#connection();
-    return await db.first<ChannelRow>(
+    return await this.#first<ChannelRow>(
       `SELECT ${CHANNEL_COLUMNS} FROM channels ORDER BY created_at LIMIT 1`,
     );
   }
 
   async getChannelBySlug(slug: string): Promise<Channel | undefined> {
-    const db = await this.#connection();
-    return db.first<ChannelRow>(
+    return this.#first<ChannelRow>(
       `SELECT ${CHANNEL_COLUMNS} FROM channels WHERE slug = ?`,
       slug,
-    );
-  }
-
-  async getChannelByMessageId(messageId: string): Promise<Channel | undefined> {
-    const db = await this.#connection();
-    return db.first<ChannelRow>(
-      `
-      SELECT c.id, c.owner_id AS ownerId, c.slug, c.name
-      FROM messages m
-      JOIN channels c ON c.id = m.channel_id
-      WHERE m.id = ?
-      `,
-      messageId,
     );
   }
 
@@ -269,12 +232,11 @@ export class Db {
     if (!slug) {
       throw new Error("Use at least one letter or number");
     }
-    const db = await this.#connection();
     // A duplicate slug or missing owner fails a constraint, so RETURNING always
     // yields the row.
     let channel: ChannelRow | undefined;
     try {
-      channel = await db.first<ChannelRow>(
+      channel = await this.#first<ChannelRow>(
         `
         INSERT INTO channels (id, owner_id, slug, name, created_at)
         VALUES (?, ?, ?, ?, ?)
@@ -319,8 +281,7 @@ export class Db {
     const ascending = !!position?.newer;
     const order = ascending ? "ASC" : "DESC";
 
-    const db = await this.#connection();
-    const rows = await db.all<PageRow>(
+    const rows = await this.#all<PageRow>(
       `
       WITH
         ch AS (SELECT id FROM channels WHERE slug = ?1),
@@ -451,8 +412,7 @@ export class Db {
     authorId: string,
     text: string,
   ): Promise<Message> {
-    const db = await this.#connection();
-    const row = await db.first<MessageJoinedRow>(
+    const row = await this.#first<MessageJoinedRow>(
       `
       INSERT INTO messages (id, channel_id, author_id, text, created_at)
       VALUES (?, ?, ?, ?, ?)
@@ -472,8 +432,7 @@ export class Db {
     authorId: string,
     text: string,
   ): Promise<Message> {
-    const db = await this.#connection();
-    const row = await db.first<MessageJoinedRow>(
+    const row = await this.#first<MessageJoinedRow>(
       `
       UPDATE messages
       SET
@@ -494,10 +453,9 @@ export class Db {
   }
 
   async deleteMessage(messageId: string, authorId: string): Promise<Message> {
-    const db = await this.#connection();
     // Its reactions are gone by the time RETURNING runs (the delete cascades
     // to them first), so the deleted message comes back without them.
-    const row = await db.first<MessageJoinedRow>(
+    const row = await this.#first<MessageJoinedRow>(
       `
       DELETE FROM messages
       WHERE id = ? AND author_id = ?
@@ -517,9 +475,8 @@ export class Db {
     userId: string,
     symbol: string,
   ): Promise<void> {
-    const db = await this.#connection();
     const createdAt = Date.now();
-    await db.batch(
+    await this.#batch(
       [
         `
         INSERT INTO reactions (id, message_id, symbol, created_at)
@@ -550,8 +507,7 @@ export class Db {
     userId: string,
     symbol: string,
   ): Promise<void> {
-    const db = await this.#connection();
-    await db.batch(
+    await this.#batch(
       [
         `
         DELETE FROM reaction_users
@@ -590,6 +546,16 @@ function parseCursor(cursor: string | undefined) {
   return match
     ? { newer: match[1] === "a", createdAt: decodeTime(match[2]), id: match[3] }
     : undefined;
+}
+
+// The base62 digits IDs and cursor timestamps are written in.
+const CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function shortId(length = 10): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  let id = "";
+  for (const byte of bytes) id += CHARS[byte % CHARS.length];
+  return id;
 }
 
 // 7 base62 digits hold 62^7 ms, about 111 years, so a timestamp is encoded

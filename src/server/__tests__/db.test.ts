@@ -1,25 +1,25 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { Db, type Driver, type MessagePage } from "./db";
-import { createDriver } from "./sqlite";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Db, type MessagePage } from "../db";
+import { createTestDatabase } from "./database";
 
 // Pages of 5, over #test's messages m01 (oldest) to m20 (newest).
 const limit = 5;
 
-let driver: Driver;
+let database: Awaited<ReturnType<typeof createTestDatabase>>;
 let db: Db;
 
 beforeEach(async () => {
-  driver = createDriver(":memory:");
-  db = new Db(() => driver);
+  database = await createTestDatabase();
+  db = new Db(database.d1);
   const owner = "(SELECT id FROM users WHERE name = '_system')";
   // Cursors encode times relative to now, so the messages are recent.
   const start = Date.now() - 60_000;
-  await driver.run(
+  await database.run(
     `INSERT INTO channels (id, owner_id, slug, name, created_at)
      VALUES ('c1', ${owner}, 'test', 'Test', 0)`,
   );
   for (let i = 1; i <= 20; i++) {
-    await driver.run(
+    await database.run(
       `INSERT INTO messages (id, channel_id, author_id, text, created_at)
        VALUES (?, 'c1', ${owner}, ?, ?)`,
       id(i),
@@ -28,6 +28,8 @@ beforeEach(async () => {
     );
   }
 });
+
+afterEach(() => database.dispose());
 
 function id(i: number) {
   return `m${String(i).padStart(2, "0")}`;
@@ -110,7 +112,7 @@ describe("getMessages", () => {
     });
 
     it("ignores a deleted focus", async () => {
-      await driver.run("DELETE FROM messages WHERE id = ?", id(8));
+      await database.run("DELETE FROM messages WHERE id = ?", id(8));
       expect(ids(await page({ focus: id(8) }))).toEqual(range(16, 20));
       const latest = await page();
       expect(ids(await page({ cursor: latest.older, focus: id(8) }))).toEqual(
@@ -120,12 +122,12 @@ describe("getMessages", () => {
 
     it("orders messages from the same moment by id", async () => {
       // m21 and m22 share m20's time; ties sort by id.
-      const time = await driver.first<{ t: number }>(
+      const time = await database.first<{ t: number }>(
         "SELECT created_at AS t FROM messages WHERE id = ?",
         id(20),
       );
       for (const extra of [21, 22]) {
-        await driver.run(
+        await database.run(
           `INSERT INTO messages (id, channel_id, author_id, text, created_at)
            SELECT ?, 'c1', author_id, 'Same time', created_at FROM messages WHERE id = ?`,
           id(extra),
@@ -140,7 +142,7 @@ describe("getMessages", () => {
     });
 
     it("ignores a focus in another channel", async () => {
-      const welcome = await driver.first<{ id: string }>(
+      const welcome = await database.first<{ id: string }>(
         "SELECT id FROM messages WHERE text = 'Welcome!'",
       );
       expect(ids(await page({ focus: welcome!.id }))).toEqual(range(16, 20));

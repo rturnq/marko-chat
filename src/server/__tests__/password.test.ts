@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hashPassword, verifyPassword } from "./password";
+import { hashPassword, verifyPassword } from "../password";
 
 describe("passwords", () => {
   it("verifies the password it hashed", async () => {
@@ -18,10 +18,18 @@ describe("passwords", () => {
     expect(await verifyPassword("same", b)).toBe(true);
   });
 
-  it("stores an encoded argon2id hash, with its salt and settings", async () => {
+  it("stores an encoded scrypt hash, with its salt and settings", async () => {
     expect(await hashPassword("x")).toMatch(
-      /^\$argon2id\$v=19\$m=4096,t=1,p=1\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/,
+      /^\$scrypt\$ln=12,r=8,p=1\$[A-Za-z0-9+/]{22}\$[A-Za-z0-9+/]{43}$/,
     );
+  });
+
+  it("verifies with the settings stored in the hash", async () => {
+    const hash = (await hashPassword("correct horse")).replace(
+      "ln=12",
+      "ln=11",
+    );
+    expect(await verifyPassword("correct horse", hash)).toBe(false);
   });
 
   it("matches composed and decomposed characters alike", async () => {
@@ -33,5 +41,8 @@ describe("passwords", () => {
     expect(await verifyPassword("", undefined)).toBe(false);
     expect(await verifyPassword("", null)).toBe(false);
     expect(await verifyPassword("anything", "not a hash")).toBe(false);
+    expect(await verifyPassword("", "$scrypt$ln=12,r=8,p=1$AAAA$A")).toBe(
+      false,
+    );
   });
 });
