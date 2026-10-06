@@ -6,6 +6,7 @@
   "sortPackageJson": false,
   "ignorePatterns": [
     ".marko-run",
+    ".wrangler",
     "dist",
     "src/tags/app-emoji-picker/emoji-data.json"
   ]

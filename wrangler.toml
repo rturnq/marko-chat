@@ -1,0 +1,22 @@
+name = "marko-chat"
+# No `main`: the Worker's entry is the one the package scripts give marko-run
+# (src/index.ts), which hands it to the Cloudflare adapter.
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets, set with `wrangler secret put`, reach the app as environment
+# variables (nodejs_compat): SESSION_SECRET signs the session cookie.
+# Locally, put it in .dev.vars.
+
+# Static assets (client JS/CSS, fonts, the brand art) are served before the
+# Worker runs; every other request goes to the Worker.
+[assets]
+binding = "ASSETS"
+
+# The chat's data. `pnpm provision` creates the database and writes its id
+# here; `pnpm db:migrate` applies src/server/migrations to it.
+[[d1_databases]]
+binding = "DB"
+database_name = "marko-chat"
+database_id = "d6790b71-d8c4-4e78-a03f-f5efc39cccd0"
+migrations_dir = "src/server/migrations"

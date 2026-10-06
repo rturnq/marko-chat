@@ -1,37 +1,63 @@
-import { argon2id, argon2Verify } from "hash-wasm";
+import { Buffer } from "node:buffer";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 /*
- * Argon2id, through hash-wasm: WebAssembly, so it runs on Cloudflare Workers
- * as well as Node, where native password hashers can't. Each hash gets a
- * random 16-byte salt, and is stored in the standard encoded form
- * (`$argon2id$v=19$m=…,t=…,p=…$salt$hash`), which carries its salt and
- * settings, so they can be raised later without breaking stored hashes.
+ * scrypt, from node:crypto, which Cloudflare Workers implement natively as
+ * well as Node. Each hash gets a random 16-byte salt, and is stored in the
+ * PHC string form (`$scrypt$ln=…,r=…,p=…$salt$hash`), which carries its salt
+ * and settings, so they can be raised later without breaking stored hashes.
  *
- * 4 MiB of memory, 1 pass, 1 lane: about a tenth of OWASP's baseline (19 MiB,
- * 2 passes), for now, so a hash takes a few milliseconds and fits in the 10ms
- * of CPU a request gets on Workers' free plan. The 8-character minimum
- * password makes up more than the difference. Raise these on a paid plan.
+ * N = 2^12 with r = 8: 4 MiB of memory, a 32nd of OWASP's baseline
+ * (N = 2^17), for now, so a hash takes about 5ms and fits in the 10ms of CPU
+ * a request gets on Workers' free plan. The 8-character minimum password
+ * makes up some of the difference. Raise `ln` on a paid plan, up to 16:
+ * past that, a hash needs more memory than a Worker has.
  */
-const SETTINGS = {
-  memorySize: 4 * 1024,
-  iterations: 1,
-  parallelism: 1,
-  hashLength: 32,
-};
+const SETTINGS: Settings = { ln: 12, r: 8, p: 1 };
 const SALT_LENGTH = 16;
+const KEY_LENGTH = 32;
+
+interface Settings {
+  /** log2 of N, the CPU and memory cost */
+  ln: number;
+  /** The block size */
+  r: number;
+  /** The parallelism */
+  p: number;
+}
+
+const ENCODED =
+  /^\$scrypt\$ln=(\d+),r=(\d+),p=(\d+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
 
 // The same password typed with composed or decomposed characters matches.
 function normalize(password: string) {
   return password.normalize("NFKC");
 }
 
-export function hashPassword(password: string): Promise<string> {
-  return argon2id({
-    ...SETTINGS,
-    password: normalize(password),
-    salt: crypto.getRandomValues(new Uint8Array(SALT_LENGTH)),
-    outputType: "encoded",
+function derive(password: string, salt: Buffer, { ln, r, p }: Settings) {
+  const N = 2 ** ln;
+  return new Promise<Buffer>((resolve, reject) => {
+    scrypt(
+      normalize(password),
+      salt,
+      KEY_LENGTH,
+      // A hash takes 128·N·r bytes; past 32 MiB, scrypt wants it allowed.
+      { N, r, p, maxmem: 256 * N * r },
+      (error, key) => (error ? reject(error) : resolve(key)),
+    );
   });
+}
+
+// PHC strings use base64 without padding.
+function base64(bytes: Buffer) {
+  return bytes.toString("base64").replace(/=+$/, "");
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(SALT_LENGTH);
+  const key = await derive(password, salt, SETTINGS);
+  const { ln, r, p } = SETTINGS;
+  return `$scrypt$ln=${ln},r=${r},p=${p}$${base64(salt)}$${base64(key)}`;
 }
 
 // Checked in place of a missing hash, so a login with an unknown name takes
@@ -43,14 +69,21 @@ export async function verifyPassword(
   password: string,
   hash: string | null | undefined,
 ): Promise<boolean> {
+  const parts = ENCODED.exec(hash ?? (await (decoy ??= hashPassword(""))));
+  if (!parts) return false;
+  const [, ln, r, p, salt, expected] = parts;
   try {
-    const matches = await argon2Verify({
-      password: normalize(password),
-      hash: hash ?? (await (decoy ??= hashPassword(""))),
+    const key = await derive(password, Buffer.from(salt, "base64"), {
+      ln: Number(ln),
+      r: Number(r),
+      p: Number(p),
     });
-    return matches && hash != null;
+    // Throws if the stored hash is another length.
+    return (
+      timingSafeEqual(key, Buffer.from(expected, "base64")) && hash != null
+    );
   } catch {
-    // Not a hash argon2 can read
+    // Settings scrypt won't take
     return false;
   }
 }
