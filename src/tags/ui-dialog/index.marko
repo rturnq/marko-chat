@@ -7,7 +7,6 @@ export interface Input extends Omit<Marko.HTML.Dialog, "open"> {
   open?: string | boolean;
   openChange?: (value: string | boolean) => void;
   heading?: Marko.AttrTag<{ content: Marko.Body }>;
-  openedby?: string;
 }
 
 <const/{ heading, open: _open, openChange, onClose, ...rest }=input>

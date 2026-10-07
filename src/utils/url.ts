@@ -14,7 +14,7 @@ export function tryGetSameOriginUrl(href: URL | string | undefined, base: URL) {
 
 export function href(
   href: URL | string,
-  search: Record<string, (string | undefined)>,
+  search: Record<string, string | undefined>,
 ) {
   // Copy, so the caller's URL (often `$global.url`) is left unchanged.
   const url = new URL(href, "http://marko.app");

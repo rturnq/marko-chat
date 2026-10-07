@@ -24,7 +24,7 @@ export function formError(
   };
 }
 
-export function flattenIssues(issues: readonly StandardSchemaV1.Issue[]) {
+function flattenIssues(issues: readonly StandardSchemaV1.Issue[]) {
   let errors: Record<string, string> | undefined;
   for (const issue of issues) {
     const field = getIssueField(issue);

@@ -1,32 +1,10 @@
 import * as v from "valibot";
 import { hashPassword } from "../../../server/password";
-import { formError } from "../../../server/utils/validation";
-import { tryGetSameOriginUrl } from "../../../utils/url";
-
-export const GET = Run.GET(
-  {
-    search: v.object({
-      to: v.optional(v.string()),
-    }),
-  },
-  async (ctx) => {
-    if (ctx.session.has("userId")) {
-      const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
-      return ctx.redirect(
-        returnUrl ||
-          Run.href("/channels/$slug", {
-            params: { slug: (await ctx.db.getDefaultChannel())!.slug },
-          }),
-      );
-    }
-  },
-);
+import { signIn } from "../../../server/sign-in";
+import { formError } from "../../../server/validation";
 
 export const POST = Run.POST(
   {
-    search: v.object({
-      to: v.optional(v.string()),
-    }),
     form: v.pipe(
       v.object({
         name: v.pipe(
@@ -53,9 +31,6 @@ export const POST = Run.POST(
     ),
   },
   async (ctx) => {
-    // start early but don't await until we need it.
-    const defaultChannel = ctx.db.getDefaultChannel().catch(() => undefined);
-
     // Only the name goes back into the form: passwords are never sent back.
     const [body, issues] = await ctx.body;
     if (issues) {
@@ -67,10 +42,14 @@ export const POST = Run.POST(
     }
 
     const taken = () => {
-      ctx.session.flash("POST:/signup", {
-        ...formError("That name is taken", undefined, { name: body.name }),
-        fields: { name: "That name is taken" },
-      });
+      ctx.session.flash(
+        "POST:/signup",
+        formError(
+          "That name is taken",
+          [{ message: "That name is taken", path: ["name"] }],
+          { name: body.name },
+        ),
+      );
       return ctx.redirect(ctx.url);
     };
 
@@ -87,15 +66,6 @@ export const POST = Run.POST(
       return taken();
     }
 
-    ctx.session.regenerateId();
-    ctx.session.set("userId", user.id);
-
-    const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
-    return ctx.redirect(
-      returnUrl ||
-        Run.href("/channels/$slug", {
-          params: { slug: (await defaultChannel)!.slug },
-        }),
-    );
+    return signIn(ctx, user.id);
   },
 );

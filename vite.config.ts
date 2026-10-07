@@ -8,4 +8,7 @@ import cloudflareAdapter from "./src/cloudflare-adapter/index.ts";
 // on the build.
 export default defineConfig({
   plugins: [marko({ adapter: cloudflareAdapter() })],
+  // Images and icons stay files of their own, cached by their hashed names,
+  // rather than inlined into every page or stylesheet that uses them.
+  build: { assetsInlineLimit: 0 },
 });

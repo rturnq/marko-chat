@@ -1,4 +1,10 @@
 /*
+ * The whole app's styles, from the root layout: tokens, fonts, resets and
+ * the page's background. A CSS module like every other stylesheet, though
+ * nearly all of it is global anyway; the two utility classes tags name
+ * directly, eyebrow and visually-hidden, are marked :global so they keep
+ * their names.
+ *
  * Resets and element defaults sit in the `base` layer and the ui-* tags in
  * `ui`, so an app-* tag's own classes win over both without extra
  * specificity. Every stylesheet that uses a layer repeats this order.
@@ -282,7 +288,7 @@
     }
 
     &::after {
-      background: url("/stars.svg") center / cover;
+      background: url("./stars.svg") center / cover;
     }
   }
 
@@ -328,7 +334,7 @@
    * Small uppercase mono labels: section, popover and dialog headings and the
    * day rule. In the base layer, so a tag's own styles can recolour one.
    */
-  .eyebrow {
+  :global(.eyebrow) {
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
@@ -339,7 +345,7 @@
   }
 }
 
-.visually-hidden {
+:global(.visually-hidden) {
   position: absolute;
   width: 1px;
   height: 1px;

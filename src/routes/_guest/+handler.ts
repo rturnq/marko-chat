@@ -1,41 +1,16 @@
 import * as v from "valibot";
 import { verifyPassword } from "../../server/password";
-import { formError } from "../../server/utils/validation";
-import { tryGetSameOriginUrl } from "../../utils/url";
-
-export const GET = Run.GET(
-  {
-    search: v.object({
-      to: v.optional(v.string()),
-    }),
-  },
-  async (ctx) => {
-    if (ctx.session.has("userId")) {
-      const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
-      return ctx.redirect(
-        returnUrl ||
-          Run.href("/channels/$slug", {
-            params: { slug: (await ctx.db.getDefaultChannel())!.slug },
-          }),
-      );
-    }
-  },
-);
+import { signIn } from "../../server/sign-in";
+import { formError } from "../../server/validation";
 
 export const POST = Run.POST(
   {
-    search: v.object({
-      to: v.optional(v.string()),
-    }),
     form: v.object({
       name: v.pipe(v.string(), v.trim(), v.nonEmpty("Enter your name")),
       password: v.pipe(v.string(), v.nonEmpty("Enter your password")),
     }),
   },
   async (ctx) => {
-    // start early but don't await until we need it.
-    const defaultChannel = ctx.db.getDefaultChannel().catch(() => undefined);
-
     const [body, issues] = await ctx.body;
     if (issues) {
       ctx.session.flash(
@@ -57,15 +32,6 @@ export const POST = Run.POST(
       return ctx.redirect(ctx.url);
     }
 
-    ctx.session.regenerateId();
-    ctx.session.set("userId", login.id);
-
-    const returnUrl = tryGetSameOriginUrl(ctx.search[0].to, ctx.url);
-    return ctx.redirect(
-      returnUrl ||
-        Run.href("/channels/$slug", {
-          params: { slug: (await defaultChannel)!.slug },
-        }),
-    );
+    return signIn(ctx, login.id);
   },
 );

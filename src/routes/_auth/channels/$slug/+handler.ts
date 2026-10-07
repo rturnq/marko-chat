@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { formError } from "../../../../server/utils/validation";
+import { formError } from "../../../../server/validation";
 import { href } from "../../../../utils/url";
 
 export const GET = Run.GET(
