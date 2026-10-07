@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { formError } from "../../../server/utils/validation";
+import { formError } from "../../../server/validation";
 import { tryGetSameOriginUrl } from "../../../utils/url";
 
 export const POST = Run.POST(
@@ -49,7 +49,10 @@ export const POST = Run.POST(
             }),
         );
       } catch (err) {
-        ctx.session.flash("POST:/messages/$id", formError(err, undefined, body));
+        ctx.session.flash(
+          "POST:/messages/$id",
+          formError(err, undefined, body),
+        );
       }
     }
     return ctx.back();

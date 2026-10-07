@@ -1,9 +1,6 @@
 import exo2 from "@fontsource-variable/exo-2/files/exo-2-latin-wght-normal.woff2?url";
 import jetbrainsMono from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url";
-import "../styles/global.css";
-
-// Every page uses these, so they load alongside the stylesheet.
-static const FONTS = [exo2, jetbrainsMono];
+import "./style.module.css";
 
 <!doctype html>
 <html lang="en">
@@ -12,17 +9,13 @@ static const FONTS = [exo2, jetbrainsMono];
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#06070d">
     <title>Marko Chat</title>
-    // The SVG where supported, the .ico elsewhere; both are the logo.
     <link rel="icon" href="/favicon.ico" sizes="32x32">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <for|font| of=FONTS>
-      <link rel="preload" href=font as="font" type="font/woff2" crossorigin>
-    </for>
-    // The backgrounds: the stylesheet asks for them, so without these they'd
-    // only start loading once it had.
-    <link rel="preload" href="/stars.svg" as="image" type="image/svg+xml">
-    <link rel="preload" href="/rainbow.svg" as="image" type="image/svg+xml">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <link rel="preload" href=exo2 as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href=jetbrainsMono as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./stars.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="../tags/ui-header/rainbow.svg" as="image" type="image/svg+xml">
   </head>
   <body>
     // Gradients the status icons fill with: a lit green dot, a yellow-orange moon.

@@ -22,7 +22,7 @@
       content: "";
       position: absolute;
       inset: 0 0 -100%;
-      background: url("/rainbow.svg") 0 0 / 100% 100% no-repeat;
+      background: url("./rainbow.svg") 0 0 / 100% 100% no-repeat;
       pointer-events: none;
     }
   }

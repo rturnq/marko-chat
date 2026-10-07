@@ -32,7 +32,7 @@ Pages are composed from tags in `src/tags/`:
 Each tag is a folder named after it: `src/tags/<tag>/index.marko`, with its styles in a CSS module,
 `style.module.css`, that the template imports.
 
-- Colors, fonts, spacing, radii and the glass are custom properties in `src/styles/global.css`, which also holds
+- Colors, fonts, spacing, radii and the glass are custom properties in `src/routes/style.module.css`, beside the root layout, which also holds
   the resets and the page's background. Spacing is on a 4px unit, controls are 32, 40 or 48 tall, and a corner
   inside another is the outer one less the padding between them.
 - Resets sit in the `base` cascade layer and `ui-*` styles in `ui`, so an `app-*` tag's classes win over both,

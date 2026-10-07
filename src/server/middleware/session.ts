@@ -4,7 +4,7 @@ import { session } from "@remix-run/session-middleware";
 import type { Middleware } from "@remix-run/fetch-router";
 import type { Session as RemixSession } from "@remix-run/session";
 import type { GetContext } from "@marko/run";
-import type { FormError } from "../utils/validation";
+import type { FormError } from "../validation";
 
 export type SessionValueData = {
   userId: string;
