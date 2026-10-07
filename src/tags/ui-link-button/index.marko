@@ -19,7 +19,13 @@ export interface Input extends Marko.HTML.A {
   input.class,
 ]>
 
-<a/$el ...rest class=classes aria-label=label role="button" title=label ?? title>
+<a/$el
+  ...rest
+  class=classes
+  aria-label=label
+  role="button"
+  title=label ?? title
+>
   <if=icon>
     <${icon.content}/>
   </if>

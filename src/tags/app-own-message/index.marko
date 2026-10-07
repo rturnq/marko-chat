@@ -16,7 +16,7 @@ export function editDraftKey(messageId: string) {
 
 <const/{ message }=input>
 <let/mounted=false>
-<script>mounted=true</script>
+<script>mounted = true;</script>
 
 <app-message
   message=message
@@ -33,7 +33,7 @@ export function editDraftKey(messageId: string) {
       // A draft of the edit survives a reload, until it's saved or cancelled.
       <ui-session-storage/value
         key=editDraftKey(message.id)
-        value=(error ? error.values?.text || "" : message.text)
+        value=error ? error.values?.text || "" : message.text
       />
       <form
         class=styles.edit

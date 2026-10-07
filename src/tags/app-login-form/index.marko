@@ -24,7 +24,7 @@ import styles from "./style.module.css";
     label="Password"
     type="password"
     name="password"
-    error=(error && (error.fields ? error.fields.password : error.message))
+    error=error && (error.fields ? error.fields.password : error.message)
     required
     autocomplete="current-password"
     autofocus=focusPassword

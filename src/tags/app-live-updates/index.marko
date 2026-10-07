@@ -41,7 +41,10 @@
       clearTimeout(pingTimer);
       if (!leaving && !$signal.aborted) {
         // 1s, 2s, 4s … up to 30s between attempts.
-        retryTimer = setTimeout(connect, Math.min(30_000, 1000 * 2 ** retries++));
+        retryTimer = setTimeout(
+          connect,
+          Math.min(30_000, 1000 * 2 ** retries++),
+        );
       }
     };
   };
