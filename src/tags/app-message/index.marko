@@ -13,7 +13,10 @@ export interface Input {
 <const/{ message }=input>
 <const/createdAt=new Date(message.createdAt)>
 
-<li class=[styles.message, input.editing && styles.editing] id=`msg-${message.id}`>
+<li
+  class=[styles.message, input.editing && styles.editing]
+  id=`msg-${message.id}`
+>
   <time
     class=styles.time
     datetime=createdAt.toISOString()

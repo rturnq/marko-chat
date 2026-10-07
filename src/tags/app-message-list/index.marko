@@ -21,9 +21,7 @@ export interface Input {
 // left out, yet each message recomputes `editing` from it as the page starts
 // (they're rendered inside an <await>), which closes a form the server
 // rendered open.
-<script>
-  void editId;
-</script>
+<script>void editId;</script>
 
 <div class=styles.list>
   // Reversed, so the feed starts scrolled to its newest message.

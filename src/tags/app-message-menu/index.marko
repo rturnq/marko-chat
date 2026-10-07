@@ -6,7 +6,11 @@ export interface Input {
   slug: string;
   url: URL;
   own?: true;
-  onCommand?: (e: Event, command: "edit" | "delete" | "copy-link", messageId: string) => void
+  onCommand?: (
+    e: Event,
+    command: "edit" | "delete" | "copy-link",
+    messageId: string,
+  ) => void;
 }
 
 <ui-popover|Context, $popover| id=input.id class=styles.menu align="end">

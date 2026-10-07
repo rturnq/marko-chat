@@ -17,7 +17,7 @@ export interface Input {
           <a
             class=styles.channel
             href=Run.href("/channels/$slug", { params: { slug: channel.slug } })
-            aria-current=(channel.slug === input.activeSlug && "page")
+            aria-current=channel.slug === input.activeSlug && "page"
           >
             #${channel.slug}
           </a>
